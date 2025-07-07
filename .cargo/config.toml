@@ -39,11 +39,11 @@ rustflags = [
 # To be able to run unit tests on macOS, support compilation to 'x86_64-apple-darwin'.
 # -all_load is related to https://github.com/web-infra-dev/rspack/pull/9337
 [target.'cfg(target_vendor = "apple")']
-rustflags = ["-C", "link-args=-Wl,-undefined,dynamic_lookup,-no_fixup_chains,-all_load"]
+rustflags = ["-C", "link-args=-Wl,-undefined,dynamic_lookup,-no_fixup_chains,-all_load", "-Zshare-generics=y"]
 
 # To be able to run unit tests on Linux, support compilation to 'x86_64-unknown-linux-gnu'.
 [target.'cfg(target_os = "linux")']
-rustflags = ["-C", "link-args=-Wl,--warn-unresolved-symbols"]
+rustflags = ["-C", "link-args=-Wl,--warn-unresolved-symbols", "-Zshare-generics=y"]
 
 # To be able to run unit tests on Windows, support compilation to 'x86_64-pc-windows-msvc'.
 # Use Hybrid CRT to reduce the size of the binary (Coming by default with Windows 10 and later versions).
@@ -51,22 +51,24 @@ rustflags = ["-C", "link-args=-Wl,--warn-unresolved-symbols"]
 rustflags = [
   "-C", "link-args=/FORCE", 
   "-C", "link-args=/NODEFAULTLIB:libucrt.lib", 
-  "-C", "link-args=/DEFAULTLIB:ucrt.lib"
+  "-C", "link-args=/DEFAULTLIB:ucrt.lib",
+  "-Zshare-generics=y"
 ]
 
 [target.wasm32-wasip1-threads]
 rustflags = [
   "-C",
   "target-feature=+simd128", 
-  "--cfg", "tokio_unstable"
+  "--cfg", "tokio_unstable",
+  "-Zshare-generics=y"
 ]
 
 [target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = ["-C", "target-feature=+crt-static", "-Zshare-generics=y"]
 [target.i686-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = ["-C", "target-feature=+crt-static", "-Zshare-generics=y"]
 [target.aarch64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = ["-C", "target-feature=+crt-static", "-Zshare-generics=y"]
 
 # This must be the last line to allow ci script to append flags
 [unstable]
