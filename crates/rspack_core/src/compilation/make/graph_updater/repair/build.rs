@@ -8,7 +8,7 @@ use super::{
 };
 use crate::{
   AsyncDependenciesBlock, BoxDependency, BoxModule, BuildContext, BuildResult, CompilationId,
-  CompilerId, CompilerOptions, DependencyParents, Module, ModuleProfile, ResolverFactory,
+  CompilerId, CompilerOptions, DependencyParents, ModuleProfile, ResolverFactory,
   SharedPluginDriver,
   compilation::make::{ForwardedIdSet, HasLazyDependencies, LazyDependencies},
   utils::{

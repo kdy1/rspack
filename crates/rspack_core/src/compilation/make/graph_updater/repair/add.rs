@@ -2,7 +2,7 @@ use rspack_error::Result;
 
 use super::{TaskContext, build::BuildTask, lazy::ProcessUnlazyDependenciesTask};
 use crate::{
-  BoxDependency, BoxModule, Module, ModuleIdentifier, ModuleProfile,
+  BoxDependency, BoxModule, ModuleIdentifier, ModuleProfile,
   compilation::make::ForwardedIdSet,
   module_graph::{ModuleGraph, ModuleGraphModule},
   utils::task_loop::{Task, TaskResult, TaskType},

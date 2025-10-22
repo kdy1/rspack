@@ -696,7 +696,7 @@ mod test {
   use rspack_sources::BoxSource;
   use rspack_util::source_map::{ModuleSourceMapConfig, SourceMapKind};
 
-  use super::Module;
+  use super::{BoxModule, Module};
   use crate::{
     AsyncDependenciesBlockIdentifier, BuildContext, BuildResult, CodeGenerationResult, Compilation,
     ConcatenationScope, Context, DependenciesBlock, DependencyId, ModuleExt, ModuleGraph,
@@ -836,8 +836,8 @@ mod test {
 
   #[test]
   fn should_downcast_successfully() {
-    let a: Box<dyn Module> = ExternalModule(String::from("a")).boxed();
-    let b: Box<dyn Module> = RawModule(String::from("a")).boxed();
+    let a: BoxModule = ExternalModule(String::from("a")).boxed();
+    let b: BoxModule = RawModule(String::from("a")).boxed();
 
     assert!(a.downcast_ref::<ExternalModule>().is_some());
     assert!(b.downcast_ref::<RawModule>().is_some());
