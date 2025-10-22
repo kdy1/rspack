@@ -6,9 +6,9 @@ use std::{
 use rspack_collections::IdentifierSet;
 use rspack_core::{
   BoxModule, Compilation, CompilationId, CompilationParams, CompilerCompilation, CompilerId,
-  CompilerMake, DependencyType, EntryDependency, LibIdentOptions, Module, ModuleExt,
-  ModuleFactory, ModuleFactoryCreateData, ModuleIdentifier, NormalModuleCreateData,
-  NormalModuleFactoryModule, Plugin,
+  CompilerMake, DependencyType, EntryDependency, LibIdentOptions, Module, ModuleExt, ModuleFactory,
+  ModuleFactoryCreateData, ModuleIdentifier, NormalModuleCreateData, NormalModuleFactoryModule,
+  Plugin,
 };
 use rspack_error::Result;
 use rspack_hook::{plugin, plugin_hook};
