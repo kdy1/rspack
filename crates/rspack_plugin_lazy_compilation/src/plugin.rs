@@ -6,9 +6,9 @@ use std::{
 use rspack_collections::IdentifierSet;
 use rspack_core::{
   BoxModule, Compilation, CompilationId, CompilationParams, CompilerCompilation, CompilerId,
-  CompilerMake, DependencyType, EntryDependency, LibIdentOptions, Module, ModuleFactory,
-  ModuleFactoryCreateData, ModuleIdentifier, NormalModuleCreateData, NormalModuleFactoryModule,
-  Plugin,
+  CompilerMake, DependencyType, EntryDependency, LibIdentOptions, Module, ModuleExt,
+  ModuleFactory, ModuleFactoryCreateData, ModuleIdentifier, NormalModuleCreateData,
+  NormalModuleFactoryModule, Plugin,
 };
 use rspack_error::Result;
 use rspack_hook::{plugin, plugin_hook};
@@ -212,7 +212,7 @@ async fn normal_module_factory_module(
     context: module_factory_create_data.options.context.as_str(),
   });
 
-  *module = Box::new(LazyCompilationProxyModule::new(
+  *module = LazyCompilationProxyModule::new(
     module_identifier,
     readable_identifier,
     lib_ident.map(|ident| ident.into_owned()),
@@ -220,7 +220,8 @@ async fn normal_module_factory_module(
     create_data.resource_resolve_data.resource().to_owned(),
     active,
     self.client.clone(),
-  ));
+  )
+  .boxed();
 
   Ok(())
 }
