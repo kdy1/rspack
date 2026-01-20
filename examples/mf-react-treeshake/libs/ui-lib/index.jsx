@@ -10,7 +10,7 @@ export const Button = ({ children, onClick, variant = 'primary' }) => {
     backgroundColor: variant === 'primary' ? '#007bff' : '#6c757d',
     color: 'white',
   };
-  return React.createElement('button', { style: styles, onClick }, children);
+  return <button style={styles} onClick={onClick}>{children}</button>;
 };
 
 export const Badge = ({ children, color = 'blue' }) => {
@@ -21,7 +21,7 @@ export const Badge = ({ children, color = 'blue' }) => {
     backgroundColor: color,
     color: 'white',
   };
-  return React.createElement('span', { style: styles }, children);
+  return <span style={styles}>{children}</span>;
 };
 
 export const Card = ({ title, children }) => {
@@ -31,10 +31,12 @@ export const Card = ({ title, children }) => {
     padding: '16px',
     marginBottom: '16px',
   };
-  return React.createElement('div', { style: styles }, [
-    React.createElement('h3', { key: 'title' }, title),
-    React.createElement('div', { key: 'content' }, children),
-  ]);
+  return (
+    <div style={styles}>
+      <h3>{title}</h3>
+      <div>{children}</div>
+    </div>
+  );
 };
 
 export const List = ({ items }) => {
@@ -42,10 +44,10 @@ export const List = ({ items }) => {
     listStyle: 'none',
     padding: 0,
   };
-  return React.createElement(
-    'ul',
-    { style: styles },
-    items.map((item, i) => React.createElement('li', { key: i }, item))
+  return (
+    <ul style={styles}>
+      {items.map((item, i) => <li key={i}>{item}</li>)}
+    </ul>
   );
 };
 
@@ -68,12 +70,14 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
     borderRadius: '8px',
     minWidth: '300px',
   };
-  return React.createElement('div', { style: overlayStyles, onClick: onClose }, [
-    React.createElement('div', { key: 'modal', style: modalStyles, onClick: e => e.stopPropagation() }, [
-      React.createElement('h2', { key: 'title' }, title),
-      React.createElement('div', { key: 'content' }, children),
-    ]),
-  ]);
+  return (
+    <div style={overlayStyles} onClick={onClose}>
+      <div style={modalStyles} onClick={e => e.stopPropagation()}>
+        <h2>{title}</h2>
+        <div>{children}</div>
+      </div>
+    </div>
+  );
 };
 
 export const Tooltip = ({ text, children }) => {
@@ -81,7 +85,7 @@ export const Tooltip = ({ text, children }) => {
     position: 'relative',
     display: 'inline-block',
   };
-  return React.createElement('div', { style: styles, title: text }, children);
+  return <div style={styles} title={text}>{children}</div>;
 };
 
 export const Avatar = ({ src, name, size = 40 }) => {
@@ -95,9 +99,9 @@ export const Avatar = ({ src, name, size = 40 }) => {
     justifyContent: 'center',
   };
   if (src) {
-    return React.createElement('img', { src, alt: name, style: styles });
+    return <img src={src} alt={name} style={styles} />;
   }
-  return React.createElement('div', { style: styles }, name?.[0] || '?');
+  return <div style={styles}>{name?.[0] || '?'}</div>;
 };
 
 export const Spinner = ({ size = 24 }) => {
@@ -109,7 +113,7 @@ export const Spinner = ({ size = 24 }) => {
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   };
-  return React.createElement('div', { style: styles });
+  return <div style={styles} />;
 };
 
 // Default export
