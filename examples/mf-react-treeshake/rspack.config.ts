@@ -12,7 +12,7 @@ export default withZephyr()(defineConfig({
     index: './src/index.tsx'
   },
   resolve: {
-    extensions: ['...', '.ts', '.tsx', '.jsx']
+    extensions: ['.ts', '.tsx', '.jsx']
   },
   output: {
     publicPath: 'auto',
@@ -48,7 +48,7 @@ export default withZephyr()(defineConfig({
     }]
   },
   plugins: [new rspack.HtmlRspackPlugin({
-    template: './index.html'
+    template: './src/index.html'
   }), isDev ? new ReactRefreshRspackPlugin() : null,
   // Module Federation with tree-shaking shared
   new ModuleFederationPlugin({
