@@ -14,7 +14,7 @@ export default withZephyr()(defineConfig({
     index: './src/index.tsx'
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.jsx'],
+    extensions: ['.ts', '.tsx', '.jsx','.js'],
     alias: {
       scheduler: require.resolve('scheduler')
     }

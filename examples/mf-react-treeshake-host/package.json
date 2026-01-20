@@ -1,0 +1,26 @@
+{
+  "name": "examples-mf-react-treeshake-host",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rspack dev",
+    "build": "rspack build",
+    "preview": "rspack preview"
+  },
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "scheduler": "^0.26.0"
+  },
+  "devDependencies": {
+    "@rspack/cli": "workspace:*",
+    "@rspack/core": "workspace:*",
+    "@rspack/plugin-react-refresh": "^1.6.0",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "react-refresh": "^0.18.0",
+    "typescript": "^5.9.3",
+    "zephyr-rspack-plugin": "^0.1.4"
+  }
+}
