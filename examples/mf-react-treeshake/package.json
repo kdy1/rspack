@@ -11,6 +11,7 @@
   "dependencies": {
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "scheduler": "^0.26.0",
     "ui-lib": "file:./libs/ui-lib"
   },
   "devDependencies": {

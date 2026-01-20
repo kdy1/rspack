@@ -2,6 +2,8 @@ import { defineConfig } from '@rspack/cli';
 import { withZephyr } from "zephyr-rspack-plugin";
 import { rspack, type SwcLoaderOptions } from '@rspack/core';
 import { ReactRefreshRspackPlugin } from '@rspack/plugin-react-refresh';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const {
   ModuleFederationPlugin
 } = rspack.container;
@@ -12,7 +14,10 @@ export default withZephyr()(defineConfig({
     index: './src/index.tsx'
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.jsx']
+    extensions: ['.ts', '.tsx', '.jsx'],
+    alias: {
+      scheduler: require.resolve('scheduler')
+    }
   },
   output: {
     publicPath: 'auto',
