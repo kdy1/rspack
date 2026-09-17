@@ -2,7 +2,7 @@
 
 这是原生 Rust Compiler API 的实验性执行器切换。基准程序的 `goexec` feature
 启用固定 Git 提交的
-[goexec 0.1.2 `112a309932f68bb843e070c77da5c057ca7dd8b5`](https://github.com/dudykr/ddbase/commit/112a309932f68bb843e070c77da5c057ca7dd8b5)
+[goexec 0.1.2 `23a076d0d69e4b1a4dfe1ad1d9f20d1bcd4c2f96`](https://github.com/dudykr/ddbase/commit/23a076d0d69e4b1a4dfe1ad1d9f20d1bcd4c2f96)
 （[PR #104](https://github.com/dudykr/ddbase/pull/104)）。多个执行许可时使用本地 LIFO 队列，
 定期优先处理最旧任务；单许可时使用 FIFO。保留批量任务窃取和分片任务注册表，
 恢复较简单的任务取消及窃取目标管理，并合并入队唤醒通知。依赖及其传递版本已固定在
@@ -53,10 +53,6 @@ Three.js-10x，执行器和 Rayon 均为 **12 线程**，相同 USER_INITIATED Q
 16 线程下开发构建比已包含管理逻辑回退及唤醒修复的初始 FIFO 版本快 2.7%，source map
 快 3.0%。16 线程开发构建与 Tokio 持平，单线程仍较慢。运行时的默认线程数未改变，
 这些数据不代表所有工作负载或 Node/NAPI 性能。
-
-[M3 Max 基准摘要和复现步骤](https://github.com/dudykr/ddbase/blob/112a309932f68bb843e070c77da5c057ca7dd8b5/crates/goexec/benches/rspack/README.md)
-说明测试协议和最终调度器。详细报告、原始数据、性能分析及被舍弃的实验保留在本地，
-位于 goexec 中已被 Git 忽略的 `benches/rspack/results/` 目录。
 
 ## Apple M5 Max 历史结果
 

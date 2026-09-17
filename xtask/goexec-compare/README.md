@@ -3,7 +3,7 @@
 [中文说明](README.zh-CN.md)
 
 This experimental feature runs native Rust compiler tasks on
-[goexec at `112a309932f68bb843e070c77da5c057ca7dd8b5`](https://github.com/dudykr/ddbase/commit/112a309932f68bb843e070c77da5c057ca7dd8b5)
+[goexec at `23a076d0d69e4b1a4dfe1ad1d9f20d1bcd4c2f96`](https://github.com/dudykr/ddbase/commit/23a076d0d69e4b1a4dfe1ad1d9f20d1bcd4c2f96)
 ([goexec PR #104](https://github.com/dudykr/ddbase/pull/104), version 0.1.2).
 It uses local LIFO queues with periodic oldest-first checks for multiple permits,
 FIFO for one permit, batch work stealing, and sharded task registries. It also
@@ -108,11 +108,6 @@ queue-order change at 16 workers improves development by 2.7% and source maps by
 reverts and wake fix. At 16 workers development is tied with Tokio; one-worker
 runs still lose. The general runtime default is unchanged, and this is not a
 claim about all workloads or Node/NAPI performance.
-
-The [M3 Max benchmark summary and reproduction](https://github.com/dudykr/ddbase/blob/112a309932f68bb843e070c77da5c057ca7dd8b5/crates/goexec/benches/rspack/README.md)
-documents the protocol and selected scheduler. Detailed reports, raw results,
-profiles, and rejected experiments remain local in goexec's ignored
-`benches/rspack/results/` directory.
 
 ## Historical Apple M5 Max results
 
