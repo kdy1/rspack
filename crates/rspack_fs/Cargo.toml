@@ -7,6 +7,7 @@ repository        = "https://github.com/web-infra-dev/rspack"
 version.workspace = true
 
 [dependencies]
+rspack_tasks = { workspace = true }
 async-trait  = { workspace = true }
 cfg-if       = { workspace = true }
 dunce        = { workspace = true }
@@ -30,3 +31,6 @@ workspace = true
 
 [lib]
 doctest = false
+
+[features]
+goexec = ["rspack_tasks/goexec"]

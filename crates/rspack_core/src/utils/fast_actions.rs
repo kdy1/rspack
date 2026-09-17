@@ -1,7 +1,7 @@
 use std::mem;
 
 #[cfg(all(not(target_family = "wasm"), not(feature = "codspeed")))]
-use tokio::task::spawn_blocking;
+use rspack_tasks::runtime::spawn_blocking;
 
 /// Fast set `src` into the referenced `dest`, and drop the old value off-thread unless
 /// deterministic benchmark mode requires inline destruction.
@@ -13,7 +13,7 @@ where
 {
   let old = mem::replace(dest, src);
   #[cfg(all(not(target_family = "wasm"), not(feature = "codspeed")))]
-  spawn_blocking(|| {
+  let _ = spawn_blocking(|| {
     mem::drop(old);
   });
   #[cfg(any(target_family = "wasm", feature = "codspeed"))]

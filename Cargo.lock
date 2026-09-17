@@ -224,6 +224,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-task"
+version = "4.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b75356056920673b02621b35afd0f7dda9306d03c79a30f5c56c44cf256e3de"
+
+[[package]]
 name = "async-trait"
 version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1785,6 +1791,17 @@ dependencies = [
  "bstr",
  "regex-automata",
  "regex-syntax",
+]
+
+[[package]]
+name = "goexec"
+version = "0.1.0"
+source = "git+https://github.com/dudykr/ddbase?rev=2faaeec15d1dd90fb7a25d9de58f29274cbeacbc#2faaeec15d1dd90fb7a25d9de58f29274cbeacbc"
+dependencies = [
+ "async-task",
+ "crossbeam-deque",
+ "futures",
+ "parking_lot",
 ]
 
 [[package]]
@@ -4315,10 +4332,30 @@ dependencies = [
  "pnp",
  "rspack_error",
  "rspack_paths",
+ "rspack_tasks",
  "rspack_util",
  "tempfile",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "rspack_goexec_compare"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "mimalloc",
+ "rayon",
+ "rspack",
+ "rspack_core",
+ "rspack_fs",
+ "rspack_plugin_schemes",
+ "rspack_regex",
+ "rspack_sources",
+ "rspack_tasks",
+ "serde_json",
+ "sha2",
+ "tokio",
 ]
 
 [[package]]
@@ -5392,6 +5429,7 @@ dependencies = [
  "rspack_fs",
  "rspack_hook",
  "rspack_paths",
+ "rspack_tasks",
  "rspack_util",
  "serde",
  "serde_json",
@@ -5624,6 +5662,7 @@ dependencies = [
 name = "rspack_tasks"
 version = "0.102.5"
 dependencies = [
+ "goexec",
  "tokio",
 ]
 

@@ -10,7 +10,11 @@ name                    = "rspack_tasks"
 repository.workspace    = true
 version.workspace       = true
 
+[features]
+goexec = ["dep:goexec"]
+
 [dependencies]
+goexec = { git = "https://github.com/dudykr/ddbase", rev = "2faaeec15d1dd90fb7a25d9de58f29274cbeacbc", optional = true }
 tokio = { workspace = true }
 [lints]
 workspace = true

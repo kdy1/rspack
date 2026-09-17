@@ -1,0 +1,83 @@
+{
+  "rspack_revision": "d4cd073db21483ed7c524dedf59ad1d8bf400b8e",
+  "goexec_revision": "63a1a0c2a3004899b130373ed94d2d8d1d8ec3bb",
+  "fixtures_revision": "a24cc8316e37328c13c153cfc896210b0ccf46a9",
+  "cpu": "Apple M5 Max",
+  "logical_cpus": "18",
+  "memory_bytes": "137438953472",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+  "rustc": "rustc 1.97.0-nightly (e8e4541ff 2026-04-15)",
+  "node": "v24.20.0",
+  "profile": {
+    "inherits": "release",
+    "opt-level": 3,
+    "lto": false,
+    "codegen-units": 16
+  },
+  "rayon_threads": "same as executor worker count",
+  "tokio_max_blocking_threads": 512,
+  "goexec_max_threads": "parallelism + 512",
+  "goexec_handoff_delay_us": 100,
+  "tokio_version": "1.53.1",
+  "goexec_version": "0.1.0 (unpublished)",
+  "fixture_pnpm_version": "10.11.0",
+  "mimalloc_version": "0.1.48",
+  "date": "2026-09-17",
+  "goexec_base_revision": "63a1a0c2a3004899b130373ed94d2d8d1d8ec3bb",
+  "goexec_patch_sha256": "dacb2f9ed4aa8ebc41ec66c8a29782673ca123504e6629bae9cdbfc43ba61d03",
+  "previous_goexec_patch_sha256": "924eb115e29cdcaf0655cd1d2d7c956ba5d4b1f8c4727960a57a9bf86309be8c",
+  "binary_sha256": {
+    "tokio": "a97afd876dbcf26892ee1e240e13dcf607e1b38988c59d0e602a97d053f8c2db",
+    "v1": "e0bd6cfb9689faef91e6c472cf89c35fecf2016c21b026659d6d140b38d4cc78",
+    "v2": "62e3ed3220fec65193790e6613fa79053ac7a52ec6b66d93394b13a4d9fc061f",
+    "counter": "ef33cfd437d3c7f95b3dd608c5839ba50c9c7dd68f750969a0fb2a096cdd29cb",
+    "periodic": "4fe9e2f40f3959435cef633c739d1cbda14f0823027014af430fd8ac5ae9d5d4"
+  },
+  "rspack_patch_sha256": "6cbda9835eeec25103991f61b28f7bb94e917ea8c9ef8bcfe6fd116e30210a3f",
+  "optimized_lockfile_sha256": "9d4ba3a1f5cb991dae06f2977936de8f4624b808136d546584a5f04119bf337c",
+  "root_validation_rustc": "rustc 1.81.0-nightly (506985649 2024-07-20)",
+  "protocol": {
+    "process_blocks": 7,
+    "warmups_per_process": 2,
+    "measurements_per_process": 3,
+    "variant_order": "rotate and reverse; all six permutations in first six blocks",
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 100
+  },
+  "exploratory_runs": {
+    "periodic-*.jsonl": "Intermediate monitor implementation; scaling interrupted after abrupt baseline slowdown. Background XProtect CPU activity was observed, but the exact cause was not established.",
+    "default-qos-final-*.jsonl": "Complete 1,365-build run of final Rust code with default thread QoS. All samples, including abrupt baseline slowdowns, are preserved and summarized separately.",
+    "preflight and scheduler CSVs": "Exploratory diagnostics excluded from final seven-block estimates."
+  },
+  "final_qos": {
+    "class": "QOS_CLASS_USER_INITIATED",
+    "value": 25,
+    "scope": "Main thread and each new pthread in all three unmodified benchmark binaries",
+    "mechanism": "DYLD_INSERT_LIBRARIES with benchmark-only pthread_create startup interposition",
+    "source": "qos.c",
+    "launcher": "run-qos.py",
+    "probe": "qos-probe.txt",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "limitations": "Shared host, no CPU affinity or background-load isolation; identical shim adds per-thread allocation and QoS startup call. Initial runtime setup is outside the timer; lazy thread startup remains inside. A short default-QoS control was also fast, so QoS is not established as the cause of the recovery.",
+    "source_sha256": "e6d793477ac1340fab4af55e17cc07aa16d9be2d34628d87cd36c55d7e598f92",
+    "dylib_sha256": "5b9b1411625092846a8dfc55f06ea3c5c6d258947dff8b0d0d4582160df8c2f6"
+  },
+  "final_inputs": [
+    "final-p16.jsonl",
+    "final-scaling.jsonl"
+  ],
+  "final_measurements_utc": {
+    "final-p16.jsonl": {
+      "first_block_started": "2026-09-16T17:57:23.257406+00:00",
+      "last_result_written": "2026-09-16T18:02:08.116518+00:00"
+    },
+    "final-scaling.jsonl": {
+      "first_block_started": "2026-09-16T18:02:08.179139+00:00",
+      "last_result_written": "2026-09-16T18:04:05.602851+00:00"
+    }
+  },
+  "final_result_sha256": {
+    "final-p16.jsonl": "44dbaa2ca59bd964c30d8733e61c1c0b521725849647c6fa9f3878c2f264e662",
+    "final-scaling.jsonl": "adb8bc5dbf596fb9abdba9568839685bb63eaeff384d0fafd85b214cb900f7ee"
+  }
+}

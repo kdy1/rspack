@@ -1,0 +1,23 @@
+[package]
+name = "rspack_goexec_compare"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+
+[features]
+goexec = ["rspack_tasks/goexec", "rspack_fs/goexec", "rspack_plugin_schemes/goexec"]
+
+[dependencies]
+futures = { workspace = true, features = ["executor"] }
+rspack = { workspace = true, features = ["loader_swc"] }
+rspack_core = { workspace = true }
+rspack_fs = { workspace = true }
+rspack_tasks = { workspace = true }
+rspack_plugin_schemes = { workspace = true }
+rspack_regex = { workspace = true }
+rspack_sources = { workspace = true }
+rayon = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "time"] }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+mimalloc = { workspace = true, features = ["v3"] }

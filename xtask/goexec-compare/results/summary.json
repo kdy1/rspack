@@ -1,0 +1,1120 @@
+[
+  {
+    "threads": 1,
+    "project": "threejs",
+    "mode": "development",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 44.829625,
+      "v1": 47.790290999999996,
+      "v2": 47.629541999999994
+    },
+    "median_change_percent": {
+      "v1": -0.3363633002360311,
+      "tokio": 6.245684633766158
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 1.0014554043115749,
+        "change_ci95_percent": [
+          -0.4590487825268941,
+          0.7939872492447098
+        ],
+        "process_block_ratios": [
+          0.992643212823291,
+          0.9999458709185766,
+          1.0118061312503337,
+          0.9966502562010058,
+          1.0048464760536173,
+          0.9906119930454163,
+          1.013930642070744
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 1.065098147035801,
+        "change_ci95_percent": [
+          5.547881563996304,
+          7.619978864238686
+        ],
+        "process_block_ratios": [
+          1.0643830152871465,
+          1.0924410956317618,
+          1.059296396962225,
+          1.0446182386966196,
+          1.0767105276694178,
+          1.0606043392163966,
+          1.058288265777753
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 46.996042,
+      "v1": 48.702666,
+      "v2": 48.60425
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 101842944,
+        "voluntary context switches": 0,
+        "involuntary context switches": 2367
+      },
+      "v1": {
+        "maximum resident set size": 88326144,
+        "voluntary context switches": 0,
+        "involuntary context switches": 1734
+      },
+      "v2": {
+        "maximum resident set size": 88752128,
+        "voluntary context switches": 0,
+        "involuntary context switches": 1728
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 0,
+        "threads_max": 2,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 0,
+        "threads_max": 2,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 369,
+    "bytes": 1693807
+  },
+  {
+    "threads": 1,
+    "project": "threejs-10x",
+    "mode": "development",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 333.844958,
+      "v1": 374.61841699999997,
+      "v2": 373.949208
+    },
+    "median_change_percent": {
+      "v1": -0.17863750676196943,
+      "tokio": 12.012836809115445
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9973361161723534,
+        "change_ci95_percent": [
+          -0.650989012234382,
+          0.0733622547375079
+        ],
+        "process_block_ratios": [
+          1.00399792184634,
+          0.9997935485311189,
+          0.9939997134376638,
+          1.000605934884927,
+          0.9954022664536043,
+          0.9995950090800657,
+          0.9880425367706445
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 1.1197144115285322,
+        "change_ci95_percent": [
+          11.531572212254492,
+          12.285803381156079
+        ],
+        "process_block_ratios": [
+          1.1215547577894334,
+          1.1173375220041348,
+          1.1080105841073455,
+          1.1223614520076304,
+          1.1220583337665884,
+          1.1217594937136706,
+          1.125004266512469
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 342.681709,
+      "v1": 382.864417,
+      "v2": 379.9925
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 530202624,
+        "voluntary context switches": 15,
+        "involuntary context switches": 20446
+      },
+      "v1": {
+        "maximum resident set size": 523042816,
+        "voluntary context switches": 15,
+        "involuntary context switches": 12050
+      },
+      "v2": {
+        "maximum resident set size": 516374528,
+        "voluntary context switches": 14,
+        "involuntary context switches": 11894
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 0,
+        "threads_max": 2,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 0,
+        "threads_max": 2,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 3691,
+    "bytes": 17107578
+  },
+  {
+    "threads": 4,
+    "project": "threejs",
+    "mode": "development",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 23.467374999999997,
+      "v1": 25.931625,
+      "v2": 24.884375
+    },
+    "median_change_percent": {
+      "v1": -4.038505107180912,
+      "tokio": 6.038170012623922
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9183088468239116,
+        "change_ci95_percent": [
+          -15.184087183052508,
+          -2.8130465936485938
+        ],
+        "process_block_ratios": [
+          0.738520164540038,
+          0.9874817336329648,
+          0.8772287208909206,
+          0.9751060336558159,
+          0.9398150554117375,
+          0.9746913904206459,
+          0.9637307921612727
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 1.0251889860081391,
+        "change_ci95_percent": [
+          -6.439162504866102,
+          11.579274655562033
+        ],
+        "process_block_ratios": [
+          0.8158220884749046,
+          1.246746600467506,
+          1.0089004685671767,
+          1.0609694121596107,
+          1.0583227864284375,
+          1.0505554846574845,
+          0.9832535915454399
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 25.654333,
+      "v1": 27.340708,
+      "v2": 27.535166999999998
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 138018816,
+        "voluntary context switches": 0,
+        "involuntary context switches": 4641
+      },
+      "v1": {
+        "maximum resident set size": 105742336,
+        "voluntary context switches": 0,
+        "involuntary context switches": 2571
+      },
+      "v2": {
+        "maximum resident set size": 106971136,
+        "voluntary context switches": 0,
+        "involuntary context switches": 1713
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 0,
+        "threads_max": 5,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 0,
+        "threads_max": 5,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 369,
+    "bytes": 1693807
+  },
+  {
+    "threads": 4,
+    "project": "threejs-10x",
+    "mode": "development",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 133.278958,
+      "v1": 141.499916,
+      "v2": 134.774791
+    },
+    "median_change_percent": {
+      "v1": -4.752741337316424,
+      "tokio": 1.1223324540097446
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9505273560068052,
+        "change_ci95_percent": [
+          -5.70587197139073,
+          -4.0479353884239515
+        ],
+        "process_block_ratios": [
+          0.9472058205056091,
+          0.9528724008337219,
+          0.9560868431893625,
+          0.9737141417474968,
+          0.9479281002310783,
+          0.9392438224638963,
+          0.9371102140582049
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 1.001616803707514,
+        "change_ci95_percent": [
+          -2.133185306752794,
+          2.1553857297952117
+        ],
+        "process_block_ratios": [
+          0.9911057521548328,
+          1.0250177797891549,
+          0.9962602630239109,
+          1.0382240650738084,
+          1.009989829200262,
+          0.9410236297658755,
+          1.012694354874212
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 140.176209,
+      "v1": 144.36433300000002,
+      "v2": 137.70570800000002
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 897941504,
+        "voluntary context switches": 11,
+        "involuntary context switches": 46758
+      },
+      "v1": {
+        "maximum resident set size": 563200000,
+        "voluntary context switches": 13,
+        "involuntary context switches": 12673
+      },
+      "v2": {
+        "maximum resident set size": 562724864,
+        "voluntary context switches": 16,
+        "involuntary context switches": 6777
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 0,
+        "threads_max": 5,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 0,
+        "threads_max": 5,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 3691,
+    "bytes": 17107578
+  },
+  {
+    "threads": 16,
+    "project": "basic-react",
+    "mode": "development",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 53.082,
+      "v1": 53.166042,
+      "v2": 52.777334
+    },
+    "median_change_percent": {
+      "v1": -0.7311208158019222,
+      "tokio": -0.5739535058965295
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9991131881445157,
+        "change_ci95_percent": [
+          -1.6031646628827723,
+          2.2916835508192346
+        ],
+        "process_block_ratios": [
+          1.065491009083917,
+          0.9978541942242006,
+          0.9971408494670067,
+          0.9961506767244208,
+          0.9794195956791907,
+          0.9783916525522005,
+          0.982025793203889
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 0.9965163486250284,
+        "change_ci95_percent": [
+          -1.2563845486067704,
+          0.6833039096328708
+        ],
+        "process_block_ratios": [
+          0.9982228815794432,
+          1.0220316067165631,
+          1.0070797016936972,
+          0.9776306590959577,
+          0.991695272365711,
+          0.9880761219269776,
+          0.9914980088163471
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 53.591542,
+      "v1": 54.203375,
+      "v2": 53.547167
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 140558336,
+        "voluntary context switches": 0,
+        "involuntary context switches": 5029
+      },
+      "v1": {
+        "maximum resident set size": 155680768,
+        "voluntary context switches": 0,
+        "involuntary context switches": 6227
+      },
+      "v2": {
+        "maximum resident set size": 157499392,
+        "voluntary context switches": 0,
+        "involuntary context switches": 4800
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 0,
+        "threads_max": 17,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 0,
+        "threads_max": 17,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 14,
+    "bytes": 978988
+  },
+  {
+    "threads": 16,
+    "project": "basic-react",
+    "mode": "production-minify",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 79.313791,
+      "v1": 79.23533300000001,
+      "v2": 78.972166
+    },
+    "median_change_percent": {
+      "v1": -0.3321333930659587,
+      "tokio": -0.4307258494301358
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9969165154421843,
+        "change_ci95_percent": [
+          -1.0614219728507623,
+          0.4307759564424307
+        ],
+        "process_block_ratios": [
+          0.9966786660693404,
+          1.0027224461869115,
+          0.9966013266044552,
+          0.9911281487690504,
+          1.0144411371863489,
+          0.9791857043881715,
+          0.9980043825627763
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 0.9954053690646227,
+        "change_ci95_percent": [
+          -1.1361434560968497,
+          0.30719583109239945
+        ],
+        "process_block_ratios": [
+          0.9891840321091578,
+          0.9867897905046404,
+          0.9953505040520361,
+          0.9918998071848565,
+          1.012509473707463,
+          0.9845749208055964,
+          1.0078743590644572
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 80.42825,
+      "v1": 80.277208,
+      "v2": 80.35012499999999
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 126730240,
+        "voluntary context switches": 0,
+        "involuntary context switches": 16052
+      },
+      "v1": {
+        "maximum resident set size": 138002432,
+        "voluntary context switches": 0,
+        "involuntary context switches": 17526
+      },
+      "v2": {
+        "maximum resident set size": 141688832,
+        "voluntary context switches": 0,
+        "involuntary context switches": 16006
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 0,
+        "threads_max": 17,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 0,
+        "threads_max": 17,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 15,
+    "bytes": 184356
+  },
+  {
+    "threads": 16,
+    "project": "basic-react",
+    "mode": "production-sourcemap",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 49.869375,
+      "v1": 50.541333,
+      "v2": 49.744541000000005
+    },
+    "median_change_percent": {
+      "v1": -1.5765156015968063,
+      "tokio": -0.25032196613651303
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9806310983952248,
+        "change_ci95_percent": [
+          -2.899325334781233,
+          -1.0031293446220113
+        ],
+        "process_block_ratios": [
+          0.9849130777391675,
+          0.9756739061858658,
+          1.0015982061634288,
+          0.9624078350387403,
+          0.9651905651089848,
+          0.9879696619524239,
+          0.9872512067919355
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 0.972983321720001,
+        "change_ci95_percent": [
+          -6.791251318024772,
+          -0.12646549701931242
+        ],
+        "process_block_ratios": [
+          1.009829555209136,
+          0.9863774475656503,
+          0.9945492212208334,
+          0.8590589525748817,
+          1.0005499710552894,
+          0.9845438923205487,
+          0.9847442288514848
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 51.197166,
+      "v1": 51.22304200000001,
+      "v2": 50.318459000000004
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 121782272,
+        "voluntary context switches": 0,
+        "involuntary context switches": 9987
+      },
+      "v1": {
+        "maximum resident set size": 140050432,
+        "voluntary context switches": 0,
+        "involuntary context switches": 11377
+      },
+      "v2": {
+        "maximum resident set size": 139329536,
+        "voluntary context switches": 0,
+        "involuntary context switches": 9858
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 0,
+        "threads_max": 17,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 0,
+        "threads_max": 17,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 15,
+    "bytes": 1457132
+  },
+  {
+    "threads": 16,
+    "project": "threejs",
+    "mode": "development",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 21.931541999999997,
+      "v1": 28.750125,
+      "v2": 23.803584
+    },
+    "median_change_percent": {
+      "v1": -17.205285194412202,
+      "tokio": 8.53584303374566
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.8429705519486845,
+        "change_ci95_percent": [
+          -18.326571600880104,
+          -12.798649431044694
+        ],
+        "process_block_ratios": [
+          0.8793792690127276,
+          0.8627148057614491,
+          0.8233398985221804,
+          0.8013205819080278,
+          0.9091851960399668,
+          0.8029927681419885,
+          0.8277399192673293
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 1.1317494116869566,
+        "change_ci95_percent": [
+          3.6832041861180276,
+          25.81746902773885
+        ],
+        "process_block_ratios": [
+          1.503954465894277,
+          1.1207745741823667,
+          0.9947139371037013,
+          0.9998936882727535,
+          1.1942372843109015,
+          1.027612170605254,
+          1.1559181666938942
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 24.184583,
+      "v1": 29.659958,
+      "v2": 25.454416000000002
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 177258496,
+        "voluntary context switches": 0,
+        "involuntary context switches": 11794
+      },
+      "v1": {
+        "maximum resident set size": 138805248,
+        "voluntary context switches": 0,
+        "involuntary context switches": 21400
+      },
+      "v2": {
+        "maximum resident set size": 143867904,
+        "voluntary context switches": 0,
+        "involuntary context switches": 8405
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 3,
+        "threads_max": 19,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 4,
+        "threads_max": 19,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 369,
+    "bytes": 1693807
+  },
+  {
+    "threads": 16,
+    "project": "threejs",
+    "mode": "production-minify",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 96.038791,
+      "v1": 99.72345800000001,
+      "v2": 96.209042
+    },
+    "median_change_percent": {
+      "v1": -3.5241617874903763,
+      "tokio": 0.17727316038369523
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9609965533844488,
+        "change_ci95_percent": [
+          -4.486375995127134,
+          -3.379580696096185
+        ],
+        "process_block_ratios": [
+          0.9658948751741068,
+          0.9467317208961138,
+          0.9616578652309619,
+          0.9563782347859895,
+          0.97048969612121,
+          0.9584462515910822,
+          0.9675803860794121
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 1.015918235927873,
+        "change_ci95_percent": [
+          -0.3349427750610978,
+          4.620729713652327
+        ],
+        "process_block_ratios": [
+          1.0144942114053173,
+          0.9999814237314547,
+          0.9865864459013889,
+          1.1038037517485884,
+          1.007368991140257,
+          0.9945997778696818,
+          1.0090340923828252
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 97.445459,
+      "v1": 101.89304200000001,
+      "v2": 97.877291
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 242827264,
+        "voluntary context switches": 0,
+        "involuntary context switches": 25978
+      },
+      "v1": {
+        "maximum resident set size": 191447040,
+        "voluntary context switches": 0,
+        "involuntary context switches": 36160
+      },
+      "v2": {
+        "maximum resident set size": 194199552,
+        "voluntary context switches": 0,
+        "involuntary context switches": 23705
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 1,
+        "threads_max": 18,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 1,
+        "threads_max": 18,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 370,
+    "bytes": 586352
+  },
+  {
+    "threads": 16,
+    "project": "threejs",
+    "mode": "production-sourcemap",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 32.504958,
+      "v1": 38.991166,
+      "v2": 33.651542
+    },
+    "median_change_percent": {
+      "v1": -13.694445557232115,
+      "tokio": 3.5274126488642032
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.8582443044922312,
+        "change_ci95_percent": [
+          -15.228223093027305,
+          -13.009337689906019
+        ],
+        "process_block_ratios": [
+          0.8873053127036773,
+          0.8403115430991195,
+          0.8481328309482947,
+          0.8676110634906378,
+          0.8648606770644292,
+          0.8558105858791366,
+          0.8445985611448601
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 1.03401543141442,
+        "change_ci95_percent": [
+          1.8745889887159972,
+          4.920455965054993
+        ],
+        "process_block_ratios": [
+          1.0506105349593993,
+          1.016667484434676,
+          1.0113517464225263,
+          1.031103265904184,
+          1.0616293565607082,
+          1.0582481521915645,
+          1.009958726911753
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 33.988209,
+      "v1": 39.49275,
+      "v2": 35.106125
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 184975360,
+        "voluntary context switches": 0,
+        "involuntary context switches": 19392
+      },
+      "v1": {
+        "maximum resident set size": 142835712,
+        "voluntary context switches": 0,
+        "involuntary context switches": 30087
+      },
+      "v2": {
+        "maximum resident set size": 146325504,
+        "voluntary context switches": 0,
+        "involuntary context switches": 17162
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 2,
+        "threads_max": 18,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 2,
+        "threads_max": 19,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 370,
+    "bytes": 2770491
+  },
+  {
+    "threads": 16,
+    "project": "threejs-10x",
+    "mode": "development",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 104.913125,
+      "v1": 155.699084,
+      "v2": 98.242417
+    },
+    "median_change_percent": {
+      "v1": -36.90237959267634,
+      "tokio": -6.358315987632612
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.6432671483489483,
+        "change_ci95_percent": [
+          -37.357652541271534,
+          -33.813728018214704
+        ],
+        "process_block_ratios": [
+          0.6160745786228202,
+          0.6576706717222266,
+          0.6187868260034208,
+          0.6651660471786569,
+          0.637310301245489,
+          0.6857158135412228,
+          0.6253621739147345
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 0.9473827035803176,
+        "change_ci95_percent": [
+          -6.584595592269505,
+          -3.8429132738939775
+        ],
+        "process_block_ratios": [
+          0.929761440594089,
+          0.9548589027660324,
+          0.9341681963749662,
+          0.9769801538177422,
+          0.946178460626788,
+          0.9684939414446885,
+          0.9225430535714915
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 109.234292,
+      "v1": 158.69204100000002,
+      "v2": 110.243
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 989298688,
+        "voluntary context switches": 7,
+        "involuntary context switches": 67308
+      },
+      "v1": {
+        "maximum resident set size": 638074880,
+        "voluntary context switches": 10,
+        "involuntary context switches": 153557
+      },
+      "v2": {
+        "maximum resident set size": 635863040,
+        "voluntary context switches": 10,
+        "involuntary context switches": 27314
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 9,
+        "threads_max": 18,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 7,
+        "threads_max": 19,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 3691,
+    "bytes": 17107578
+  },
+  {
+    "threads": 16,
+    "project": "threejs-10x",
+    "mode": "production-minify",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 830.734541,
+      "v1": 874.939792,
+      "v2": 828.67375
+    },
+    "median_change_percent": {
+      "v1": -5.287911513801625,
+      "tokio": -0.24806853432617348
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.9491292805278961,
+        "change_ci95_percent": [
+          -5.712710047794422,
+          -4.115788562304246
+        ],
+        "process_block_ratios": [
+          0.9417863805535526,
+          0.9759851788558425,
+          0.948745956062922,
+          0.9418504158414428,
+          0.9408717985321412,
+          0.9491140761033952,
+          0.9460219978868761
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 0.9961457728380061,
+        "change_ci95_percent": [
+          -1.2728690496668915,
+          0.8136577878760098
+        ],
+        "process_block_ratios": [
+          0.993176300787533,
+          1.0294337301398195,
+          0.9983948554087524,
+          0.9796619387700712,
+          0.995727624126495,
+          0.9896217552493316,
+          0.9877503059517557
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 846.279667,
+      "v1": 887.480708,
+      "v2": 853.62425
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 1318993920,
+        "voluntary context switches": 0,
+        "involuntary context switches": 113740
+      },
+      "v1": {
+        "maximum resident set size": 739885056,
+        "voluntary context switches": 0,
+        "involuntary context switches": 175576
+      },
+      "v2": {
+        "maximum resident set size": 749355008,
+        "voluntary context switches": 0,
+        "involuntary context switches": 72672
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 10,
+        "threads_max": 19,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 8,
+        "threads_max": 23,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 3692,
+    "bytes": 6119019
+  },
+  {
+    "threads": 16,
+    "project": "threejs-10x",
+    "mode": "production-sourcemap",
+    "samples_per_variant": 21,
+    "process_blocks": 7,
+    "median_ms": {
+      "tokio": 197.85408299999997,
+      "v1": 239.55166599999998,
+      "v2": 189.518709
+    },
+    "median_change_percent": {
+      "v1": -20.88608183589088,
+      "tokio": -4.212889556593069
+    },
+    "paired_comparisons": {
+      "v1": {
+        "geomean_ratio": 0.7961796501850815,
+        "change_ci95_percent": [
+          -21.72962896402352,
+          -18.78125535803472
+        ],
+        "process_block_ratios": [
+          0.7754857588976675,
+          0.8161375211009138,
+          0.787456255887613,
+          0.7913258043313807,
+          0.7908572391297412,
+          0.7775789662213651,
+          0.836211193022923
+        ]
+      },
+      "tokio": {
+        "geomean_ratio": 0.9639034658001189,
+        "change_ci95_percent": [
+          -5.0009249525384325,
+          -2.0843111943589565
+        ],
+        "process_block_ratios": [
+          0.9624990352557417,
+          0.9781808950589107,
+          0.9331474555498805,
+          0.9625208548083982,
+          0.9586358770011856,
+          0.9521421832632869,
+          1.0016117356874346
+        ]
+      }
+    },
+    "p95_ms": {
+      "tokio": 205.20675,
+      "v1": 244.068958,
+      "v2": 200.65025
+    },
+    "process_usage_median": {
+      "tokio": {
+        "maximum resident set size": 1052311552,
+        "voluntary context switches": 19,
+        "involuntary context switches": 93307
+      },
+      "v1": {
+        "maximum resident set size": 565035008,
+        "voluntary context switches": 34,
+        "involuntary context switches": 158910
+      },
+      "v2": {
+        "maximum resident set size": 570949632,
+        "voluntary context switches": 32,
+        "involuntary context switches": 52358
+      }
+    },
+    "goexec_metrics": {
+      "v1": {
+        "handoffs_median": 8,
+        "threads_max": 18,
+        "capacity_delays_sum": 0
+      },
+      "v2": {
+        "handoffs_median": 6,
+        "threads_max": 20,
+        "capacity_delays_sum": 0
+      }
+    },
+    "modules": 3692,
+    "bytes": 29308775
+  }
+]

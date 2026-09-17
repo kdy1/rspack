@@ -1,0 +1,86 @@
+{
+  "builds": 1365,
+  "measured_builds": 819,
+  "warmup_builds": 546,
+  "processes": 273,
+  "conditions": 13,
+  "variant_condition_cells": 39,
+  "qos": "user-initiated",
+  "all_emitted_asset_hashes_modules_and_bytes_equal": true,
+  "goexec_spawn_failures": 0,
+  "input_sha256": {
+    "final-p16.jsonl": "44dbaa2ca59bd964c30d8733e61c1c0b521725849647c6fa9f3878c2f264e662",
+    "final-scaling.jsonl": "adb8bc5dbf596fb9abdba9568839685bb63eaeff384d0fafd85b214cb900f7ee"
+  },
+  "outputs": {
+    "basic-react/development": {
+      "assets": {
+        "main.css": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "main.js": "a38598e44eb629617dc0fdd793acc23cab4f0270b9a95b60be2d269e03f2de83"
+      },
+      "modules": 14,
+      "bytes": 978988
+    },
+    "basic-react/production-minify": {
+      "assets": {
+        "main.css": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "main.js": "3ff3a0719bbe73fe984937bd3428bf92184cbd7f44d83a8ff3ba3b7ab938b49c"
+      },
+      "modules": 15,
+      "bytes": 184356
+    },
+    "basic-react/production-sourcemap": {
+      "assets": {
+        "main.css": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "main.js": "b5bb01e4c00a1693432e4ab3cb97504ad323a9db91f14f09f75ac9971521e269",
+        "main.js.map": "fdcbdcf7e6de513e7c11639200dc06bc7e08b9bf9f0937691cc75931a2ebd971"
+      },
+      "modules": 15,
+      "bytes": 1457132
+    },
+    "threejs/development": {
+      "assets": {
+        "main.js": "9830ca62cf04a0fe7ee763f6107fed601e9a34c3746b354556e2a80319651a95"
+      },
+      "modules": 369,
+      "bytes": 1693807
+    },
+    "threejs/production-minify": {
+      "assets": {
+        "main.js": "5f07a9e998a640d36d18905f7ce400126079050f07b869e9b87f5020a7826d42"
+      },
+      "modules": 370,
+      "bytes": 586352
+    },
+    "threejs/production-sourcemap": {
+      "assets": {
+        "main.js": "4373c9a130218595e5bb88b7588dedf81fc80e38b8ae4be89f529089833df74f",
+        "main.js.map": "d2bbc19e6d033f2a0865072c0457e74809847c9844d17446a3ee4c4378047a8e"
+      },
+      "modules": 370,
+      "bytes": 2770491
+    },
+    "threejs-10x/development": {
+      "assets": {
+        "main.js": "7aeb9f1b1e730a21d095ba1d8bc4a446db4354338b88a6794200868a3b05fd7d"
+      },
+      "modules": 3691,
+      "bytes": 17107578
+    },
+    "threejs-10x/production-minify": {
+      "assets": {
+        "main.js": "46984cc8011887912e99cc77a0827eb5bf0997a8a5aebcb8f3d7392526792e4b"
+      },
+      "modules": 3692,
+      "bytes": 6119019
+    },
+    "threejs-10x/production-sourcemap": {
+      "assets": {
+        "main.js": "5a77f229033e88dab5207e85813df1d13d2294a376f2a6c4b4b96e3ca4859942",
+        "main.js.map": "40b00ee0076e3f3e8b7dc1983117891e67f8c637c376827731f2df5b47a4ffcd"
+      },
+      "modules": 3692,
+      "bytes": 29308775
+    }
+  }
+}

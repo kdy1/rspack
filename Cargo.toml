@@ -1,5 +1,5 @@
 [workspace]
-members  = ["crates/*", "xtask/benchmark", "xtask"]
+members  = ["crates/*", "xtask/benchmark", "xtask/goexec-compare", "xtask"]
 resolver = "2"                                      # See https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2
 
 [workspace.package]
@@ -630,3 +630,8 @@ regex_creation_in_loops = "warn"
 # regex
 invalid_regex = "warn"
 trivial_regex = "warn"
+
+[profile.executor-bench]
+inherits = "release"
+lto = false
+codegen-units = 16
