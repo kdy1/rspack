@@ -14,7 +14,7 @@ version.workspace       = true
 goexec = ["dep:goexec"]
 
 [dependencies]
-goexec = { git = "https://github.com/dudykr/ddbase", rev = "2faaeec15d1dd90fb7a25d9de58f29274cbeacbc", optional = true }
+goexec = { git = "https://github.com/dudykr/ddbase", rev = "112a309932f68bb843e070c77da5c057ca7dd8b5", optional = true }
 tokio = { workspace = true }
 [lints]
 workspace = true

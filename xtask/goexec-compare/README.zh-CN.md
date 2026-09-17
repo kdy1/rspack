@@ -1,7 +1,12 @@
 # 原生编译器：Tokio 与 goexec
 
 这是原生 Rust Compiler API 的实验性执行器切换。基准程序的 `goexec` feature
-启用固定 Git 提交的优化版本，包括工作线程本地队列、批量任务窃取和分片任务注册表。
+启用固定 Git 提交的
+[goexec 0.1.2 `112a309932f68bb843e070c77da5c057ca7dd8b5`](https://github.com/dudykr/ddbase/commit/112a309932f68bb843e070c77da5c057ca7dd8b5)
+（[PR #104](https://github.com/dudykr/ddbase/pull/104)）。多个执行许可时使用本地 LIFO 队列，
+定期优先处理最旧任务；单许可时使用 FIFO。保留批量任务窃取和分片任务注册表，
+恢复较简单的任务取消及窃取目标管理，并合并入队唤醒通知。依赖及其传递版本已固定在
+Cargo.lock 中，无需本地路径覆盖。
 默认构建仍使用 Tokio；Rayon 及 Tokio 的 task-local、同步原语继续保留。
 
 此实验未迁移 Node/NAPI、JavaScript 插件或 loader、watch 定时器、网络及持久缓存后台运行时。
@@ -22,7 +27,42 @@ target/goexec-compare/rspack-goexec target/goexec-compare/fixtures threejs-10x d
 参数依次为 fixture 目录、项目、模式、线程数、预热次数和测量次数。
 每次编译会验证输出文件；主要计时区间是包含输出写入的 `Compiler::run()`。
 
-归档结果来自 2026-09-17 的 Apple M5 Max。16 线程 Three.js-10x 开发构建中，
+## Apple M3 Max：当前实现
+
+当前依赖的生产 Rust 源码与 2026-09-17 在 Apple M3 Max（12 个性能核心、4 个能效核心，
+48 GiB 内存）上测量的最终版本一致。测量使用了本地 Cargo 路径；检出路径和 Git 依赖来源
+可能改变二进制哈希。下列归档时间不是发布此次更新时对 Git 依赖版本重新测量的结果。
+
+Three.js-10x，执行器和 Rayon 均为 **12 线程**，相同 USER_INITIATED QoS，
+每个版本、每种条件测量 21 次：
+
+| 模式 | Tokio 中位数 | 当前 goexec 中位数 | 相对 Tokio 的配对耗时变化 [95% CI] |
+|---|---:|---:|---:|
+| 开发构建 | 154.38 ms | 124.23 ms | -20.97% [-22.63, -18.92] |
+| Source map | 283.03 ms | 253.10 ms | -9.91% [-11.52, -8.14] |
+| 压缩 | 1156.97 ms | 1128.56 ms | -2.62% [-3.83, -1.22] |
+
+耗时变化使用七组配对进程的中位数比值，置信区间使用 10,000 次 bootstrap 重采样，
+因此不一定等于表中中位数的直接比值。8/12 线程调优阶段的全部 630 次构建中，
+输出哈希、模块数量和字节数量一致，没有编译、关闭、线程创建错误或容量延迟。
+所有版本编译时均设置 `CARGO_PROFILE_EXECUTOR_BENCH_DEBUG=1` 和
+`CARGO_PROFILE_EXECUTOR_BENCH_STRIP=none`。复现时对上方两条构建命令使用相同设置，
+运行时将线程数参数设为 `12`。测试未设置 CPU 亲和性。
+
+这一差距同时包含线程数配置与执行器原有行为的影响。单独比较队列顺序改动时，
+16 线程下开发构建比已包含管理逻辑回退及唤醒修复的初始 FIFO 版本快 2.7%，source map
+快 3.0%。16 线程开发构建与 Tokio 持平，单线程仍较慢。运行时的默认线程数未改变，
+这些数据不代表所有工作负载或 Node/NAPI 性能。
+
+[M3 Max 基准摘要和复现步骤](https://github.com/dudykr/ddbase/blob/112a309932f68bb843e070c77da5c057ca7dd8b5/crates/goexec/benches/rspack/README.md)
+说明测试协议和最终调度器。详细报告、原始数据、性能分析及被舍弃的实验保留在本地，
+位于 goexec 中已被 Git 忽略的 `benches/rspack/results/` 目录。
+
+## Apple M5 Max 历史结果
+
+以下归档结果来自 2026-09-17 的 Apple M5 Max，使用更新前固定的
+`2faaeec15d1dd90fb7a25d9de58f29274cbeacbc`，不代表当前依赖。
+16 线程 Three.js-10x 开发构建中，
 旧 goexec 为 155.70 ms，优化版本为 98.24 ms，Tokio 为 104.91 ms。
 这不是所有条件下的提升：单线程时优化版本仍比 Tokio 慢约 12%。
 所有 1,365 次归档构建的输出哈希、模块数量和字节数量一致。

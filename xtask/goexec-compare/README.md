@@ -3,10 +3,13 @@
 [中文说明](README.zh-CN.md)
 
 This experimental feature runs native Rust compiler tasks on
-[goexec at `2faaeec15d1dd90fb7a25d9de58f29274cbeacbc`](https://github.com/dudykr/ddbase/commit/2faaeec15d1dd90fb7a25d9de58f29274cbeacbc).
-It includes the worker-local queues, batch work stealing and sharded task
-registries from the latest optimization. The dependency and its transitive
-versions are pinned in Cargo.lock; no local dependency override is required.
+[goexec at `112a309932f68bb843e070c77da5c057ca7dd8b5`](https://github.com/dudykr/ddbase/commit/112a309932f68bb843e070c77da5c057ca7dd8b5)
+([goexec PR #104](https://github.com/dudykr/ddbase/pull/104), version 0.1.2).
+It uses local LIFO queues with periodic oldest-first checks for multiple permits,
+FIFO for one permit, batch work stealing, and sharded task registries. It also
+restores simpler task/stealer bookkeeping and coalesces enqueue notifications.
+The dependency and its transitive versions are pinned in Cargo.lock; no local
+dependency override is required.
 The port is based on Rspack `d4cd073db21483ed7c524dedf59ad1d8bf400b8e`.
 
 ## Scope
@@ -73,17 +76,56 @@ timing builds. For a repeat comparison, alternate binary order across seven fres
 process pairs, discard two warmups per process, and retain three samples each.
 Compare asset hashes, module counts, and byte counts across every run.
 
-## Recorded results
+## Apple M3 Max: selected implementation
+
+The dependency's production Rust sources match the selected implementation
+measured on 2026-09-17 on an Apple M3 Max (12 performance and 4 efficiency cores,
+48 GiB RAM). The measurements used a local Cargo path; checkout paths and Git
+dependency identity can change binary hashes. These archived timings are not
+a new measurement of the Git-resolved binary when publishing this update.
+
+Three.js-10x with **12 executor and 12 Rayon workers**, matching USER_INITIATED
+QoS, and 21 measured builds per variant/condition:
+
+| Mode | Tokio median | Selected goexec median | Paired time change vs Tokio [95% CI] |
+|---|---:|---:|---:|
+| Development | 154.38 ms | 124.23 ms | -20.97% [-22.63, -18.92] |
+| Source maps | 283.03 ms | 253.10 ms | -9.91% [-11.52, -8.14] |
+| Minification | 1156.97 ms | 1128.56 ms | -2.62% [-3.83, -1.22] |
+
+Time changes use seven paired process-block median ratios and 10,000 bootstrap
+resamples; they need not equal ratios of the displayed medians. All 630 builds
+in this 8/12-worker tuning phase matched asset hashes, module counts, and bytes,
+with no compiler/shutdown/spawn errors or capacity delays. All variants used
+`CARGO_PROFILE_EXECUTOR_BENCH_DEBUG=1` and
+`CARGO_PROFILE_EXECUTOR_BENCH_STRIP=none` during compilation. Use those same
+overrides for both build commands above, then pass `12` as the worker argument
+to reproduce this configuration. No CPU affinity was imposed.
+
+This gap combines the worker setting and existing backend behavior. The isolated
+queue-order change at 16 workers improves development by 2.7% and source maps by
+3.0% over the initial FIFO working tree, which already included the bookkeeping
+reverts and wake fix. At 16 workers development is tied with Tokio; one-worker
+runs still lose. The general runtime default is unchanged, and this is not a
+claim about all workloads or Node/NAPI performance.
+
+The [M3 Max benchmark summary and reproduction](https://github.com/dudykr/ddbase/blob/112a309932f68bb843e070c77da5c057ca7dd8b5/crates/goexec/benches/rspack/README.md)
+documents the protocol and selected scheduler. Detailed reports, raw results,
+profiles, and rejected experiments remain local in goexec's ignored
+`benches/rspack/results/` directory.
+
+## Historical Apple M5 Max results
 
 These are archived measurements from 2026-09-17 on an Apple M5 Max, not a new
 benchmark run performed when publishing this branch. All three historical
 variants used the same explicit QoS. The measured v2 used a local Cargo patch;
-its production Rust source matches the git dependency pinned here. Binary hashes
+its production Rust source matches the previous pin,
+`2faaeec15d1dd90fb7a25d9de58f29274cbeacbc`. Binary hashes
 can change with source checkout paths and dependency source identity.
 
 Three.js-10x, 16 workers, median of 21 measured builds per variant:
 
-| Mode | Tokio | Previous goexec (v1) | Current goexec (v2) |
+| Mode | Tokio | Historical goexec (v1) | Historical goexec (v2) |
 |---|---:|---:|---:|
 | Development | 104.91 ms | 155.70 ms | 98.24 ms |
 | Source maps | 197.85 ms | 239.55 ms | 189.52 ms |
@@ -115,5 +157,6 @@ The historical environment file records the original PR revision plus the local
 optimization patch hash; it is preserved as provenance, not a description of
 this branch's dependency source. Current source validation should use the git
 revision in `crates/rspack_tasks/Cargo.toml` and Cargo.lock. Referenced exploratory
-artifacts are not part of this compact archive. The historical v1 is not selected
-by this branch's feature; this branch builds Tokio and optimized v2.
+artifacts are not part of this compact archive. Neither historical goexec
+variant is selected by this branch's feature; the current pin is documented
+above.

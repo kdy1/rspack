@@ -1795,8 +1795,8 @@ dependencies = [
 
 [[package]]
 name = "goexec"
-version = "0.1.0"
-source = "git+https://github.com/dudykr/ddbase?rev=2faaeec15d1dd90fb7a25d9de58f29274cbeacbc#2faaeec15d1dd90fb7a25d9de58f29274cbeacbc"
+version = "0.1.2"
+source = "git+https://github.com/dudykr/ddbase?rev=112a309932f68bb843e070c77da5c057ca7dd8b5#112a309932f68bb843e070c77da5c057ca7dd8b5"
 dependencies = [
  "async-task",
  "crossbeam-deque",
