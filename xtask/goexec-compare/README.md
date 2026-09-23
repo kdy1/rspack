@@ -3,14 +3,15 @@
 [中文说明](README.zh-CN.md)
 
 This experimental feature runs native Rust compiler tasks on
-[goexec at `23a076d0d69e4b1a4dfe1ad1d9f20d1bcd4c2f96`](https://github.com/dudykr/ddbase/commit/23a076d0d69e4b1a4dfe1ad1d9f20d1bcd4c2f96)
-([goexec PR #104](https://github.com/dudykr/ddbase/pull/104), version 0.1.2).
+[goexec at `f5d82e14d8b068ecd0894065d3457bcf4ce33c54`](https://github.com/dudykr/ddbase/commit/f5d82e14d8b068ecd0894065d3457bcf4ce33c54)
+(version 0.1.3 on main, including [PR #104](https://github.com/dudykr/ddbase/pull/104)).
 It uses local LIFO queues with periodic oldest-first checks for multiple permits,
 FIFO for one permit, batch work stealing, and sharded task registries. It also
 restores simpler task/stealer bookkeeping and coalesces enqueue notifications.
 The dependency and its transitive versions are pinned in Cargo.lock; no local
 dependency override is required.
-The port is based on Rspack `d4cd073db21483ed7c524dedf59ad1d8bf400b8e`.
+The port includes upstream Rspack main at
+`cbf189da225ee607d9f66197f0ad8e50d8258c57`.
 
 ## Scope
 
@@ -76,7 +77,48 @@ timing builds. For a repeat comparison, alternate binary order across seven fres
 process pairs, discard two warmups per process, and retain three samples each.
 Compare asset hashes, module counts, and byte counts across every run.
 
-## Apple M3 Max: selected implementation
+## Latest-main verification — 2026-09-23
+
+Fresh native builds on the same Apple M3 Max use upstream Rspack main
+`cbf189da225ee607d9f66197f0ad8e50d8258c57` and goexec main
+`f5d82e14d8b068ecd0894065d3457bcf4ce33c54` (0.1.3). The previous integration
+merged without conflicts or changes to its Rust implementation. goexec's Rust
+sources are identical to the previously benchmarked scheduler; its main update
+only changes the version and README.
+
+Three.js-10x, **12 executor and 12 Rayon workers**, 21 retained builds per
+variant/condition in seven paired process blocks:
+
+| Mode | Tokio median | goexec 0.1.3 median | Paired time change vs Tokio [95% CI] |
+|---|---:|---:|---:|
+| Development | 143.06 ms | 116.89 ms | -18.82% [-20.74, -17.11] |
+| Source maps | 277.11 ms | 246.61 ms | -11.62% [-12.57, -10.63] |
+| Minification | 1218.97 ms | 1187.06 ms | -2.89% [-3.85, -1.88] |
+
+At 16 workers, paired time changes are -3.08% for development, -3.31% for
+source maps, and -2.02% for minification; all three 95% intervals exclude zero.
+At one worker, goexec remains slower by 10.78%, 7.36%, and 3.51%, respectively.
+This confirms an advantage for this workload at 12/16 workers, not all worker
+counts or workloads. The runtime default remains unchanged.
+
+All **630 builds in 126 processes** matched emitted-asset hashes, module counts,
+and bytes, with successful shutdown and no spawn failures or capacity delays.
+A separate 18-build smoke check covered React, ordinary Three.js, and
+Three.js-10x in all three modes at 16 workers. goexec's 37 ordinary tests, six
+Loom models, formatting and Clippy checks passed; both native benchmark builds
+completed without warnings.
+
+Both variants use nightly-2026-04-16, the same Cargo.lock, profile and QoS shim,
+with `CARGO_PROFILE_EXECUTOR_BENCH_DEBUG=1` and
+`CARGO_PROFILE_EXECUTOR_BENCH_STRIP=none`. Two warmups precede three retained
+builds per process. Conditions are shuffled per block and executor order
+alternates within each condition. Changes and intervals follow the paired-block
+method below, with no outlier removal or multiple-comparison adjustment. No
+compilation ran during timing. These warm native compiler results exclude
+Node/NAPI, JS plugins/loaders and watch/HMR. Shared-host load and scheduling
+remain limitations. Raw results and profiling artifacts are not added to Git.
+
+## Historical Apple M3 Max results — 2026-09-17
 
 The dependency's production Rust sources match the selected implementation
 measured on 2026-09-17 on an Apple M3 Max (12 performance and 4 efficiency cores,
