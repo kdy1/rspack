@@ -224,6 +224,10 @@ impl ReadableFileSystem for NativeFileSystem {
     })
   }
   #[instrument(skip(self), level = "debug")]
+  async fn read_link(&self, path: &Utf8Path) -> Result<Utf8PathBuf> {
+    Ok(fs::read_link(path)?.assert_utf8())
+  }
+  #[instrument(skip(self), level = "debug")]
   async fn canonicalize(&self, path: &Utf8Path) -> Result<Utf8PathBuf> {
     rspack_tasks::runtime::blocking(|| {
       if self.options.pnp {
@@ -312,6 +316,10 @@ impl ReadableFileSystem for NativeFileSystem {
   async fn symlink_metadata(&self, path: &Utf8Path) -> Result<FileMetadata> {
     let meta = fs::symlink_metadata(path)?;
     meta.try_into()
+  }
+  #[instrument(skip(self), level = "debug")]
+  async fn read_link(&self, path: &Utf8Path) -> Result<Utf8PathBuf> {
+    Ok(fs::read_link(path)?.assert_utf8())
   }
   #[instrument(skip(self), level = "debug")]
   async fn canonicalize(&self, path: &Utf8Path) -> Result<Utf8PathBuf> {

@@ -1,7 +1,7 @@
 import path from 'node:path';
-import sources from 'webpack-sources';
+import { rspack } from '@rspack/core';
 
-const { RawSource } = sources;
+const { RawSource } = rspack.sources;
 
 let compilerIndex = 0;
 const loaderOptions = {
@@ -31,7 +31,7 @@ export default {
     rules: [
       {
         test: /(?:changed|stable)\.js$/,
-        loader: './loader.js',
+        loader: './loader.mjs',
         options: loaderOptions,
       },
       {
@@ -40,7 +40,7 @@ export default {
         parser: {
           parse: JSON.parse,
         },
-        loader: './loader.js',
+        loader: './loader.mjs',
         options: loaderOptions,
       },
     ],
