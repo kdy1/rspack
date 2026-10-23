@@ -2,6 +2,8 @@
 
 `.github/workflows/gungraun.yml` compares exact commits in `kdy1/rspack` on one
 Ubuntu runner. It uses Gungraun and its runner at version 0.20.0 with Valgrind.
+The harness explicitly passes `GLIBC_TUNABLES` from the job into each measured
+process; Gungraun clears other process environment variables by default.
 No CodSpeed token or upstream runner is required. The workflow reports counts;
 the optimization skill applies the performance gate before upstream publication.
 

@@ -1,6 +1,6 @@
 use std::hint::black_box;
 
-use gungraun::{library_benchmark, library_benchmark_group, main};
+use gungraun::{LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main};
 use rspack_sources::{BoxSource, ConcatSource, RawStringSource, SourceExt, SourceMap};
 
 // Reuse the existing source-map fixture and concat workloads from rspack_benchmark.
@@ -41,4 +41,7 @@ library_benchmark_group!(
     name = sources;
     benchmarks = concat_add, parse_source_map, serialize_source_map
 );
-main!(library_benchmark_groups = sources);
+main!(
+  config = LibraryBenchmarkConfig::default().pass_through_env("GLIBC_TUNABLES"),
+  library_benchmark_groups = sources
+);
