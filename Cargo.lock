@@ -7502,8 +7502,7 @@ dependencies = [
 [[package]]
 name = "swc_next_allocator"
 version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96fed82154bd10edc6e786734f293cd2474c6fdf56b4283b4874f8bc60533749"
+source = "git+https://github.com/kdy1/swc-next?rev=a5c8ef358c655ee819563cf522b3d6af5438808f#a5c8ef358c655ee819563cf522b3d6af5438808f"
 dependencies = [
  "allocator-api2",
  "bumpalo",
@@ -7513,9 +7512,8 @@ dependencies = [
 
 [[package]]
 name = "swc_next_ast_macros"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cfd5bc38ef1da4221abed5c45f03be4b69803ac53d3ab16a6c28374e6176a63"
+version = "0.3.2"
+source = "git+https://github.com/kdy1/swc-next?rev=a5c8ef358c655ee819563cf522b3d6af5438808f#a5c8ef358c655ee819563cf522b3d6af5438808f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7525,8 +7523,7 @@ dependencies = [
 [[package]]
 name = "swc_next_ecma_ast"
 version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9bcfec5b406750954db0389db8d4ce942e77109d8d7a4bcfd2e85dbf5de6189"
+source = "git+https://github.com/kdy1/swc-next?rev=a5c8ef358c655ee819563cf522b3d6af5438808f#a5c8ef358c655ee819563cf522b3d6af5438808f"
 dependencies = [
  "cow-utils",
  "num-bigint 0.5.1",
@@ -7539,8 +7536,7 @@ dependencies = [
 [[package]]
 name = "swc_next_ecma_parser"
 version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4e92fbbcfcbb659ceb6e01faa3af3e2bb24042a59f24a84cef1325faffee0da"
+source = "git+https://github.com/kdy1/swc-next?rev=a5c8ef358c655ee819563cf522b3d6af5438808f#a5c8ef358c655ee819563cf522b3d6af5438808f"
 dependencies = [
  "bitflags 2.13.2",
  "memchr",
@@ -7554,8 +7550,7 @@ dependencies = [
 [[package]]
 name = "swc_next_ecma_semantic"
 version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d0b65b886f368b94046902b50757333625f4c1929b3bc7e9b8ae8cd38366ac6"
+source = "git+https://github.com/kdy1/swc-next?rev=a5c8ef358c655ee819563cf522b3d6af5438808f#a5c8ef358c655ee819563cf522b3d6af5438808f"
 dependencies = [
  "bitflags 2.13.2",
  "hashbrown 0.17.1",
@@ -7570,9 +7565,8 @@ dependencies = [
 
 [[package]]
 name = "swc_next_regular_expression"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccf170d303015b83a3fcfb896fd0bd156726973ae6b974030643db88e474bd86"
+version = "0.3.2"
+source = "git+https://github.com/kdy1/swc-next?rev=a5c8ef358c655ee819563cf522b3d6af5438808f#a5c8ef358c655ee819563cf522b3d6af5438808f"
 dependencies = [
  "bitflags 2.13.2",
  "phf 0.14.0",
@@ -7583,9 +7577,8 @@ dependencies = [
 
 [[package]]
 name = "swc_next_simd"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c07f9a9b3e69d5090af16380fc693359b01f37a4636e53473c1371ab8998591c"
+version = "0.3.2"
+source = "git+https://github.com/kdy1/swc-next?rev=a5c8ef358c655ee819563cf522b3d6af5438808f#a5c8ef358c655ee819563cf522b3d6af5438808f"
 
 [[package]]
 name = "swc_node_comments"
