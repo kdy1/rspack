@@ -56,7 +56,7 @@ Build the isolated harness without executing Valgrind:
 cargo bench --manifest-path xtask/gungraun/Cargo.toml --bench sources --locked --no-run
 ```
 
-Validate the reporting code and workflow:
+Validate the reporting code and workflow with Python 3.11 or newer and actionlint:
 
 ```bash
 python3 -m unittest discover -s .github/scripts -p test_gungraun.py
