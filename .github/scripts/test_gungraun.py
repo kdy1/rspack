@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from gungraun import compare, read_summaries, select_catalog
-from prepare import adapt, prepare
+from prepare import adapt, prepare, registered_entries
 
 
 class ComparisonTests(unittest.TestCase):
@@ -57,6 +57,10 @@ class ComparisonTests(unittest.TestCase):
         self.assertIn('use crate::adapter::Criterion;', adapted)
         self.assertIn(routine.replace('criterion::', 'crate::adapter::'), adapted)
         self.assertNotIn('criterion_group!', adapted)
+
+    def test_unrecognized_registration_fails(self):
+        with self.assertRaisesRegex(ValueError, 'Unsupported benchmark registration'):
+            registered_entries('criterion_main!(benchmark_setup, custom::new_group);')
 
     def test_full_harness_overlay_keeps_production(self):
         root = Path(__file__).resolve().parents[2]

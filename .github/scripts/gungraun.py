@@ -187,6 +187,8 @@ def main():
                         shutil.copyfile(ROOT / HARNESS / 'workspace.Cargo.lock', source / 'Cargo.lock')
                         driver, features = build_driver(source, env, output / f'{label}-build.log')
                         metadata[f'{label}_build_features'] = features
+                        if label == 'head' and features != metadata['base_build_features']:
+                            raise ValueError('Base/head Cargo build features differ')
                         discovery = run(driver, '--list', args.suite, cwd=source, env=env)
                         (output / f'{label}-discovery.log').write_text(discovery)
                         catalogs = [line.removeprefix('GUNGRAUN_CATALOG=') for line in discovery.splitlines()

@@ -10,8 +10,28 @@ def adapt(text):
     text = re.sub(r'use criterion::criterion_group;\n', '', text)
     text = re.sub(r'criterion_(?:group|main)!\([^;]*\);', '', text, flags=re.S)
     text = text.replace(', criterion_group, criterion_main', '')
+    text = text.replace('use criterion::{Criterion};', 'use criterion::Criterion;')
     return text.replace('rspack_benchmark::Criterion', 'crate::adapter::Criterion').replace(
         'criterion::', 'crate::adapter::')
+
+
+def registered_entries(text):
+    main = re.search(r'criterion_main!\((.*?)\);', text, re.S)
+    if main is None:
+        raise ValueError('Missing Criterion main registration')
+    entries = []
+    for item in main[1].split(','):
+        item = item.strip()
+        if item in ('', 'benchmark_setup'):
+            continue
+        match = re.fullmatch(r'(cases|stages)::(\w+)::(?:case|stage)', item)
+        if match is None:
+            raise ValueError(f'Unsupported benchmark registration: {item}')
+        family, name = match.groups()
+        entries.append((f'{family}/{name}', f'{family}::{name}::bench', 'benches'))
+    if not entries:
+        raise ValueError('No compiler benchmarks registered')
+    return entries
 
 
 def prepare(workflow, source):
@@ -39,10 +59,7 @@ def prepare(workflow, source):
     walltime = walltime.replace('fn threejs_10x_bundle_benchmark', 'pub fn threejs_10x_bundle_benchmark')
     (destination / 'walltime.rs').write_text(adapt(walltime))
     shutil.copyfile(workflow / 'xtask/gungraun/driver/adapter.rs', destination / 'adapter.rs')
-    entries = []
-    main = (fixed / 'benches/benches.rs').read_text().split('criterion_main!(', 1)[1]
-    for family, name in re.findall(r'(cases|stages)::(\w+)::(?:case|stage)', main):
-        entries.append((f'{family}/{name}', f'{family}::{name}::bench', 'benches'))
+    entries = registered_entries((fixed / 'benches/benches.rs').read_text())
     entries += [('rspack_sources', 'groups::rspack_sources::rspack_sources_benchmark', 'rspack_sources'),
                 ('walltime', 'walltime::threejs_10x_bundle_benchmark', 'walltime')]
     registry = ',\n'.join(f'("{entry}", {function}, "{suite}")' for entry, function, suite in entries)
@@ -52,6 +69,7 @@ mod groups;
 mod cases;
 mod stages;
 mod walltime;
+type Entry = (&'static str, fn(&mut adapter::Criterion), &'static str);
 
 fn main() {
     rspack_benchmark::configure_rayon_for_benchmark();
@@ -62,7 +80,7 @@ fn main() {
         entry: String::new(), selected: if listing { None } else { Some(args[1].clone()) },
         cases: Vec::new(), measured: 0,
     };
-    let entries: &[(&str, fn(&mut adapter::Criterion), &str)] = &[
+    let entries: &[Entry] = &[
 REGISTRY
     ];
     for &(entry, register, suite) in entries {
@@ -88,7 +106,8 @@ REGISTRY
         text += '\n[[bench]]\nname = "gungraun_driver"\npath = "benches/gungraun_generated/main.rs"\nharness = false\n'
         manifest.write_text(text)
     library = benchmark / 'src/lib.rs'
-    library.write_text(library.read_text().replace('#[cfg(codspeed)]', '#[cfg(any(codspeed, feature = "gungraun"))]')
+    library.write_text(library.read_text().replace('#[allow(clippy::needless_return)]\n', '')
+                       .replace('#[cfg(codspeed)]', '#[cfg(any(codspeed, feature = "gungraun"))]')
                        .replace('#[cfg(not(codspeed))]', '#[cfg(not(any(codspeed, feature = "gungraun")))]')
                        .replace('pub fn build_tokio_rt()', '#[allow(clippy::needless_return)]\npub fn build_tokio_rt()'))
 

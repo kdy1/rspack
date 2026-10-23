@@ -74,6 +74,7 @@ impl Drop for Measurement {
 }
 
 impl Bencher {
+  #[allow(clippy::iter_not_returning_iterator)] // Match Criterion's existing API.
   pub fn iter<R>(&mut self, mut routine: impl FnMut() -> R) {
     self.iterations += 1;
     // Match the steady-state semantics of Criterion's repeated iter calls,
