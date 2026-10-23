@@ -1,72 +1,128 @@
 # Gungraun CI benchmarks
 
 `.github/workflows/gungraun.yml` compares exact commits in `kdy1/rspack` on one
-Ubuntu runner. It uses Gungraun and its runner at version 0.20.0 with Valgrind.
-The harness explicitly passes `GLIBC_TUNABLES` from the job into each measured
-process; Gungraun clears other process environment variables by default.
-No CodSpeed token or upstream runner is required. The workflow reports counts;
-the optimization skill applies the performance gate before upstream publication.
+Ubuntu runner. Gungraun and its runner are pinned to 0.20.0. Results report
+Callgrind `Ir` (executed instructions); they do not establish wall-time speedups.
+The workflow reports counts without performance-failure thresholds.
 
-## Run a comparison
+## Select a suite
 
-After this workflow lands on the fork's default branch:
+The manual workflow accepts these `suite` values:
+
+| Suite | Cases |
+| --- | --- |
+| `all` (manual default) | All existing Rust benchmarks below, including the large bundle cases |
+| `benches` | Graph construction and APIs, dependency scanning, JavaScript compiler source maps, bundles, compilation stages, and persistent-cache restore |
+| `rspack_sources` | All cases registered by the existing isolated `rspack_sources` Criterion target |
+| `walltime` | Both `threejs-10x` bundle cases, measured as instructions |
+| `sources` | Original lightweight smoke suite: concat with 16/500 children and Ant Design source-map parsing/serialization |
+
+The full suites reuse registrations from `xtask/benchmark/benches/benches.rs`,
+`rspack_sources.rs`, and `walltime.rs`. An adapter executes the existing routines
+once under Callgrind. Discovery records the original entry point and Criterion
+case name in `base-catalog.json` and `head-catalog.json`. Different catalogs,
+missing summaries, duplicate IDs, empty filters, and failed cases invalidate a
+comparison. The workflow does not silently skip unsupported cases.
+
+`filter` selects a substring of the original Criterion name for full suites.
+An empty filter selects the entire chosen suite. `sources` retains the original
+native Gungraun filter syntax for compatibility.
 
 ```bash
-gh workflow run gungraun.yml --repo kdy1/rspack --ref main \
-  -f base_ref=<full-base-sha> -f head_ref=<full-head-sha> -f filter=''
+gh workflow run gungraun.yml --repo kdy1/rspack --ref <workflow-branch> \
+  -f base_ref=<full-base-sha> -f head_ref=<full-head-sha> \
+  -f suite=all -f filter=''
+
+# Measure one stage, preserving graph preparation outside the measurement.
+gh workflow run gungraun.yml --repo kdy1/rspack --ref <workflow-branch> \
+  -f base_ref=<full-base-sha> -f head_ref=<full-head-sha> \
+  -f suite=benches -f filter='rust@create_module_hashes'
 ```
 
-Both inputs must be full lowercase commit SHAs available in the fork. Use the
-same workflow revision for a series of comparisons. The workflow overlays its
-own harness, lockfile, and source-map fixture onto each revision. It preserves
-production code and uses the workflow's Rust toolchain. Different Cargo build
-configuration or dependencies incompatible with the harness lockfile cause a
-failure instead of an uncontrolled comparison.
+Both revisions must be full lowercase commit SHAs available in the fork. Freeze
+the workflow branch revision for a comparison series. The workflow overlays its
+harness, benchmark registrations, fixtures, lockfiles, and Rust toolchain onto
+both revisions. Production implementations remain at their requested revision.
+Cargo dependency or configuration incompatibility fails the comparison.
 
-PR changes to this infrastructure run the head SHA twice to validate the
-harness before it lands. This is a same-revision check, not evidence of an
-optimization against the PR base. Other PRs do not trigger this workflow.
+Full suites build the Rust compiler and can take substantially longer than the
+smoke suite. The job allows up to six hours. Infrastructure PRs run the original
+smoke suite with the head SHA twice; manually dispatch full-suite validation
+before accepting a harness change. Other production PRs do not trigger profiling.
 
-## Cases and measurement boundary
+## Measurement boundary
 
-The initial suite adapts existing `rspack_benchmark` source workloads:
+The full adapter preserves the existing Criterion routine boundaries:
 
-- `concat_add::few`: append 16 prebuilt children.
-- `concat_add::many`: append 500 prebuilt children.
-- `parse_source_map::antd`: parse the existing Ant Design source-map fixture.
-- `serialize_source_map::antd`: serialize that parsed map.
+- `iter` runs one unmeasured preparation iteration, then measures one iteration,
+  including destruction of the routine result. This warms lazy source caches and
+  matches the repeated-call behavior of the original benchmarks.
+- `iter_batched` and `iter_batched_ref` prepare fresh inputs outside the measured
+  region. They stop instrumentation before destroying returned results and, for
+  the reference variant, the prepared input. Destruction inside the routine
+  remains part of that routine.
+- Compiler creation, graph preparation, fixture copying, and persistent-cache
+  seeding remain where the existing benchmark places them. Persistent-cache
+  cases retain their isolated workspace and fresh-compiler restore semantics.
 
-Input preparation and returned-value destruction occur outside the measured
-function. The concat cases include cloning each shared source handle. The suite
-uses the system allocator and measures synchronous source operations only; it
-does not measure bundling, worker threads, or the JavaScript API. Add relevant
-cases before using the optimization skill for other workloads. A nonempty
-`filter` uses Gungraun's filter syntax; an unmatched filter fails the comparison.
+Callgrind instrumentation starts and stops around the measured routine globally,
+so work on Tokio blocking threads is included. The adapter does not use a
+thread-local collection toggle. Simulation uses Tokio's current-thread runtime,
+eight blocking threads, and one Rayon thread. The large `walltime` fixtures also
+use this simulation configuration in Gungraun; this does not reproduce their
+multi-thread wall-time configuration. Asynchronous work must complete before the
+existing measured routine returns. The harness does not measure the JavaScript
+API or N-API overhead.
+
+Full suites use `rspack_benchmark`'s existing mimalloc allocator wrapper and the
+`codspeed` build profile without running CodSpeed. The original `sources` smoke
+suite retains its system allocator and isolated `bench` profile. Counts from
+different suites or measurement boundaries must not be combined as one baseline.
+
+## Fixtures and reproducibility
+
+The full suites pin `rstackjs/rspack-benchcases` to the SHA recorded in the
+workflow, install its frozen pnpm lockfile with scripts disabled, and use the
+existing fixture setup script for CSS and scaled threejs inputs. Base and head
+share these immutable inputs; writable cache workspaces are sample-local.
+Metadata records the fixture revision and lockfile hash, exact benchmark and
+harness file hashes, toolchain, architecture, allocator, features, thread
+configuration, and environment. The job explicitly passes benchmark environment
+variables into measured processes because Gungraun clears other variables.
 
 ## Results and validation
 
-The workflow and comparison parser support only Callgrind `Ir`. Cachegrind and
-DHAT metrics are not supported. The job summary contains base/head `Ir` counts
-and percentage changes. Negative
-change means fewer executed instructions, not a wall-time speedup. Download the
-`gungraun-<run-id>-<attempt>` artifact for `metadata.json`, `comparison.json`,
-base/head summaries, logs, and raw Callgrind profiles. Metadata records exact
-SHAs, tool versions, architecture, environment, and harness/fixture hashes.
-Artifacts expire after 30 days; retain evidence needed by an optimization PR.
+Download `gungraun-<run-id>-<attempt>` from the fork. It contains `metadata.json`,
+`comparison.json`, base/head catalogs for full suites, summaries, build and
+measurement logs, and raw Callgrind profiles, including per-thread output. Counts
+are summed over the recorded profiles by Gungraun. Metadata and catalogs must
+match the intended workload before interpreting the result. Artifacts expire
+after 30 days; retain evidence needed for optimization decisions.
 
-Build the isolated harness without executing Valgrind:
+[Full-suite same-revision validation](https://github.com/kdy1/rspack/actions/runs/39928018690)
+passed at `7c7255aafc05d7c8380eccd7d11f307c0e2e7528`: 44 compiler/stage cases,
+13 source cases, and two large bundle cases. Downloaded artifacts contain all
+59 comparisons and matching catalogs, 138 verified harness file hashes, and
+matching Cargo feature configurations. Worker-thread counts are included in the
+totals. Forty-one cases produced identical counts; the largest absolute change
+was 0.108% in persistent-cache restore. This establishes harness coverage and
+records same-revision variability; it is not an optimization result. Later
+registration and feature-validation guards were checked locally against these
+artifacts, with ten Python checks and Clippy on the changed Rust targets.
 
 ```bash
-cargo bench --manifest-path xtask/gungraun/Cargo.toml --bench sources --locked --no-run
-```
+gh run download <run-id> --repo kdy1/rspack --dir <result-directory>
 
-Validate the reporting code and workflow with Python 3.11 or newer and actionlint:
+# Build the isolated harness without executing Valgrind.
+cargo bench --manifest-path xtask/gungraun/Cargo.toml --locked --no-run
 
-```bash
+# Check reporting and overlay behavior; Python 3.11 or newer is required.
 python3 -m unittest discover -s .github/scripts -p test_gungraun.py
 actionlint .github/workflows/gungraun.yml
 ```
 
-On Linux with the matching runner and Valgrind installed, the workflow's Python
-entry point can also exercise the full comparison. Local counts validate the
-harness only; the optimization skill requires fork Actions evidence.
+`prepare.py` generates the full driver only in the temporary benchmark checkout.
+Its overlay changes benchmark plumbing and adds a benchmark-only runtime feature;
+those changes must not be transferred to an upstream production PR. The root
+workspace remains unchanged. Local builds check correctness and harness startup;
+only matching fork Actions comparisons provide optimization evidence.

@@ -12,10 +12,57 @@ import shutil
 import subprocess
 import tempfile
 import tomllib
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'xtask/gungraun'))
+from prepare import prepare
 
 ROOT = Path(__file__).resolve().parents[2]
 HARNESS = Path('xtask/gungraun')
 FIXTURE = Path('xtask/benchmark/benches/fixtures/rspack_sources/antd-mini/antd.min.js.map')
+SUITES = ('sources', 'all', 'benches', 'rspack_sources', 'walltime')
+
+
+def select_catalog(catalog, name_filter):
+    selected = [case for case in catalog if name_filter in case[1]]
+    if not selected:
+        raise ValueError('No benchmark cases matched; no performance comparison was produced')
+    identities = [(entry.replace('/', '_'), re.sub(r'[^a-zA-Z0-9]', '_', name))
+                  for entry, name in selected]
+    if len(set(identities)) != len(identities):
+        raise ValueError('Benchmark IDs collide after Gungraun normalization')
+    if any(len(entry) > 120 or len(name) > 120 for entry, name in identities):
+        raise ValueError('Benchmark ID exceeds Gungraun limit')
+    return selected
+
+
+def build_features(artifacts):
+    features = {}
+    for artifact in artifacts:
+        features.setdefault(artifact['package_id'], set()).add(tuple(sorted(artifact['features'])))
+    # A package can be compiled with different host/target feature sets. Preserve
+    # each set without depending on Cargo's parallel artifact emission order.
+    return {package: [list(config) for config in sorted(configs)]
+            for package, configs in sorted(features.items())}
+
+
+def build_driver(source, env, log):
+    command = ['cargo', 'bench', '--locked', '-p', 'rspack_benchmark', '--features', 'gungraun',
+               '--bench', 'gungraun_driver', '--profile', 'codspeed', '--no-run',
+               '--message-format=json']
+    with log.open('w') as stderr:
+        result = subprocess.run(command, cwd=source, env=env, text=True,
+                                stdout=subprocess.PIPE, stderr=stderr)
+    log.with_suffix('.jsonl').write_text(result.stdout)
+    result.check_returncode()
+    artifacts = [message for line in result.stdout.splitlines()
+                 if (message := json.loads(line)).get('reason') == 'compiler-artifact']
+    executables = [message['executable'] for message in artifacts
+                   if message['target']['name'] == 'gungraun_driver'
+                   and message.get('executable')]
+    if len(executables) != 1:
+        raise ValueError('Expected exactly one benchmark driver executable')
+    return executables[0], build_features(artifacts)
 
 
 def run(*args, cwd=ROOT, env=None):
@@ -66,6 +113,7 @@ def main():
     parser.add_argument('--base', required=True)
     parser.add_argument('--head', required=True)
     parser.add_argument('--filter', default='')
+    parser.add_argument('--suite', choices=SUITES, default='sources')
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
     for sha in (args.base, args.head):
@@ -80,23 +128,45 @@ def main():
     harness_files = [ROOT / HARNESS / 'Cargo.toml', ROOT / HARNESS / 'Cargo.lock',
                      *sorted((ROOT / HARNESS / 'benches').rglob('*.rs')), ROOT / FIXTURE,
                      ROOT / 'rust-toolchain.toml', ROOT / '.cargo/config.toml']
+    if args.suite != 'sources':
+        harness_files += [ROOT / HARNESS / 'prepare.py', ROOT / HARNESS / 'workspace.Cargo.lock',
+                          *sorted((ROOT / HARNESS / 'driver').rglob('*.rs')),
+                          ROOT / 'scripts/bench/setup.mjs', ROOT / 'xtask/benchmark/Cargo.toml',
+                          *sorted(p for p in (ROOT / 'xtask/benchmark').rglob('*')
+                                  if p.is_file() and 'gungraun_generated' not in p.parts
+                                  and p.suffix in ('.rs', '.json', '.js', '.map', '.css', '.toml'))]
     hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in harness_files}
     env = dict(os.environ, RUSTUP_TOOLCHAIN=toolchain, CARGO_INCREMENTAL='0',
                GUNGRAUN_COLOR='never', CARGO_TARGET_DIR=str(output / 'target'))
+    if args.suite != 'sources':
+        env.update(BENCH_MODE='simulation', RAYON_NUM_THREADS='1', MIMALLOC_PURGE_DELAY='-1')
+        fixture_root = Path(env['RSPACK_BENCHCASES_DIR'])
+        if not fixture_root.is_absolute() or not fixture_root.is_dir():
+            raise ValueError('RSPACK_BENCHCASES_DIR must identify prepared absolute fixture directory')
+        actual_fixture_sha = run('git', 'rev-parse', 'HEAD', cwd=fixture_root)
+        if actual_fixture_sha != env.get('GUNGRAUN_FIXTURE_SHA'):
+            raise ValueError('Benchmark fixture revision differs from pinned workflow input')
     metadata = dict(schema_version=1, repository=os.environ.get('GITHUB_REPOSITORY'),
                     run_id=os.environ.get('GITHUB_RUN_ID'),
                     run_url=f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ.get('GITHUB_REPOSITORY', 'kdy1/rspack')}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}",
                     workflow_sha=run('git', 'rev-parse', 'HEAD'),
-                    base_sha=args.base, head_sha=args.head, filter=args.filter,
+                    base_sha=args.base, head_sha=args.head, filter=args.filter, suite=args.suite,
                     harness_files=hashes, architecture=platform.machine(),
                     platform=platform.platform(), cpu=run('lscpu'),
                     rustc=run('rustc', '-Vv', env=env),
                     runner=run('gungraun-runner', '--version'),
                     valgrind=run('valgrind', '--version'),
-                    allocator='system', profile='bench, debug=1', features=[],
+                    allocator='system' if args.suite == 'sources' else 'NeverGrowInPlaceAllocator<mimalloc>',
+                    profile='bench, debug=1' if args.suite == 'sources' else 'codspeed',
+                    features=[] if args.suite == 'sources' else ['gungraun', 'existing benchmark dev-dependency features'],
+                    threads='synchronous' if args.suite == 'sources' else 'Tokio current-thread, blocking=8, Rayon=1; all threads instrumented',
+                    fixture_revision=os.environ.get('GUNGRAUN_FIXTURE_SHA'),
+                    fixture_lock_sha256=None if args.suite == 'sources' else hashlib.sha256(
+                        (fixture_root / 'pnpm-lock.yaml').read_bytes()).hexdigest(),
                     environment={k: env.get(k) for k in
-                                 ('RUSTFLAGS', 'GLIBC_TUNABLES', 'CARGO_INCREMENTAL')},
+                                 ('RUSTFLAGS', 'GLIBC_TUNABLES', 'CARGO_INCREMENTAL', 'CARGO_BUILD_JOBS', 'BENCH_MODE',
+                                  'RAYON_NUM_THREADS', 'MIMALLOC_PURGE_DELAY', 'RSPACK_BENCHCASES_DIR')},
                     status='running')
     write_json(output / 'metadata.json', metadata)
     home = output / 'profiles'
@@ -112,6 +182,8 @@ def main():
                     # Freeze build flags as well as the toolchain, without replacing product files.
                     if (source / '.cargo/config.toml').read_bytes() != (ROOT / '.cargo/config.toml').read_bytes():
                         raise ValueError('Cargo configuration differs from the workflow revision')
+                    if args.suite != 'sources' and (source / 'Cargo.toml').read_bytes() != (ROOT / 'Cargo.toml').read_bytes():
+                        raise ValueError('Workspace dependencies or build profiles differ from the workflow revision')
                     destination = source / HARNESS
                     if destination.exists():
                         shutil.rmtree(destination)
@@ -119,11 +191,33 @@ def main():
                                     ignore=shutil.ignore_patterns('target', '__pycache__'))
                     (source / FIXTURE).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(ROOT / FIXTURE, source / FIXTURE)
+                    target = 'sources'
+                    if args.suite != 'sources':
+                        prepare(ROOT, source)
+                        shutil.copyfile(ROOT / HARNESS / 'workspace.Cargo.lock', source / 'Cargo.lock')
+                        driver, features = build_driver(source, env, output / f'{label}-build.log')
+                        metadata[f'{label}_build_features'] = features
+                        if label == 'head' and features != metadata['base_build_features']:
+                            raise ValueError('Base/head Cargo build features differ')
+                        discovery = run(driver, '--list', args.suite, cwd=source, env=env)
+                        (output / f'{label}-discovery.log').write_text(discovery)
+                        catalogs = [line.removeprefix('GUNGRAUN_CATALOG=') for line in discovery.splitlines()
+                                    if line.startswith('GUNGRAUN_CATALOG=')]
+                        if len(catalogs) != 1:
+                            raise ValueError('Expected exactly one benchmark catalog')
+                        catalog = select_catalog(json.loads(catalogs[0]), args.filter)
+                        catalog_path = output / f'{label}-catalog.json'
+                        write_json(catalog_path, catalog)
+                        if label == 'head' and catalog != json.loads((output / 'base-catalog.json').read_text()):
+                            raise ValueError('Base/head benchmark catalogs differ')
+                        env.update(RSPACK_GUNGRAUN_DRIVER=driver, RSPACK_GUNGRAUN_CATALOG=str(catalog_path))
+                        metadata[f'{label}_catalog'] = catalog
+                        target = 'portfolio'
                     command = ['cargo', 'bench', '--locked', '--manifest-path',
-                               str(HARNESS / 'Cargo.toml'), '--bench', 'sources', '--',
+                               str(HARNESS / 'Cargo.toml'), '--bench', target, '--',
                                f'--home={home}', '--save-summary=json']
                     command += ['--save-baseline=base'] if label == 'base' else ['--baseline=base']
-                    if args.filter:
+                    if args.filter and args.suite == 'sources':
                         command.append(args.filter)
                     with (output / f'{label}.log').open('w') as log:
                         result = subprocess.run(command, cwd=source, env=env,
@@ -137,7 +231,9 @@ def main():
                         shutil.copyfile(summary, target)
                         # Prevent a head filter mismatch from reusing stale base summaries.
                         summary.unlink()
-                    read_summaries(snapshots, baseline=label == 'base')
+                    summaries = read_summaries(snapshots, baseline=label == 'base')
+                    if args.suite != 'sources' and len(summaries) != len(catalog):
+                        raise ValueError('Measured case count differs from selected catalog')
             finally:
                 subprocess.run(['git', 'worktree', 'remove', '--force', str(source)],
                                cwd=ROOT, check=True)
