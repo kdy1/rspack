@@ -1,6 +1,6 @@
 ---
 name: gungraun-optimize
-description: Optimize Rspack with Gungraun profiles and exact base/head comparisons in kdy1/rspack GitHub Actions, then obtain human approval for each passing change before publishing it as a draft PR to web-infra-dev/rspack. Use for CI-based instruction, cache, or allocation optimization; excludes the local Docker/Valgrind workflow.
+description: Optimize Rspack with Gungraun profiles and exact base/head comparisons in kdy1/rspack GitHub Actions, then obtain human approval for each passing change before publishing it as a draft PR to web-infra-dev/rspack. Use for CI-based instruction-count optimization; excludes cache-miss or allocation-metric optimization and the local Docker/Valgrind workflow.
 ---
 
 # Gungraun optimize
@@ -26,7 +26,7 @@ Use separate measurement and publication branches. A measurement branch can incl
 5. Freeze the starting upstream SHA, requested scope, exact primary tool/metric and improvement direction, benchmark identities/filter, target portfolio, related cases, protected cases, and case frequencies before editing. Protected cases are user-designated or workload-critical cases. Use documented production frequencies when available; otherwise give each case frequency one and disclose that assumption. Record the primary metric and direction explicitly (default: Callgrind `Ir`, lower is better). Do not select a different counter, reclassify cases, or change weights after seeing results to pass the gate. A requested metric change starts a new comparison series with a fresh baseline.
 6. Record the Rust toolchain, Gungraun library/runner versions, Valgrind version, runner architecture, fixtures, features, allocator, thread configuration, and relevant environment. Keep them identical across each comparison.
 
-Default to Callgrind `Ir` (executed instructions). Use Cachegrind/cache metrics for cache work and DHAT for allocation work. These metrics do not establish wall-clock speedups. Local commands can check correctness and harness startup, but only matching fork Actions runs establish performance.
+This implementation supports only Callgrind `Ir` (executed instructions), with lower counts indicating improvement. The workflow and parser do not support Cachegrind or DHAT metrics. If the requested goal is cache misses or allocations, report that measurement is unsupported and stop this workflow; do not substitute `Ir` or claim those goals passed. Supporting another metric requires a separate harness, reporting, and gate extension before optimization. Instruction counts do not establish wall-clock speedups. Local commands can check correctness and harness startup, but only matching fork Actions runs establish performance.
 
 For Rspack stage benchmarks, preserve the stage boundary. Compiler creation, graph preparation, fixture copying, and cache warmup belong outside the measured body unless they are the requested target. For cache cases, specify cold/warm state and reset writable fixtures consistently. Verify whether totals include worker threads or subprocesses before claiming a whole-compilation improvement. A Rust-only benchmark does not measure the `@rspack/core` JavaScript API or N-API overhead.
 

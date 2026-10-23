@@ -43,7 +43,9 @@ cases before using the optimization skill for other workloads. A nonempty
 
 ## Results and validation
 
-The job summary contains base/head `Ir` counts and percentage changes. Negative
+The workflow and comparison parser support only Callgrind `Ir`. Cachegrind and
+DHAT metrics are not supported. The job summary contains base/head `Ir` counts
+and percentage changes. Negative
 change means fewer executed instructions, not a wall-time speedup. Download the
 `gungraun-<run-id>-<attempt>` artifact for `metadata.json`, `comparison.json`,
 base/head summaries, logs, and raw Callgrind profiles. Metadata records exact

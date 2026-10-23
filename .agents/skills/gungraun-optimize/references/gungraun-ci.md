@@ -1,6 +1,6 @@
 # Gungraun CI on the fork
 
-Read this when creating, auditing, or repairing the measurement harness. All workflow runs and artifacts for this workflow belong to `kdy1/rspack`.
+Read this when creating, auditing, or repairing the measurement harness. All workflow runs and artifacts for this workflow belong to `kdy1/rspack`. The included workflow and schema-7 parser support only Callgrind `Ir`; Cachegrind and DHAT comparisons are not implemented.
 
 ## Dispatch prerequisite
 
@@ -59,7 +59,7 @@ Keep shell values quoted and pass workflow inputs through environment variables 
 
 ## Evidence and permissions
 
-Upload machine-readable summaries, raw Callgrind/Cachegrind/DHAT profiles, logs, and optional regular/differential flamegraphs with `if: always()`. Retain enough metadata to verify:
+Upload machine-readable summaries, raw Callgrind profiles, logs, and optional regular/differential flamegraphs with `if: always()`. Retain enough metadata to verify:
 
 - repository, run ID/URL, workflow revision, original/effective base and head SHAs;
 - harness and fixture hashes, exact filter and complete case identities;
