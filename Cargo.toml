@@ -626,3 +626,12 @@ regex_creation_in_loops = "warn"
 # regex
 invalid_regex = "warn"
 trivial_regex = "warn"
+
+[patch.crates-io]
+swc_next_allocator = { git = "https://github.com/swc-project/swc-next", rev = "f523d94fb28dbc52e89b23eaa217df6c6853ce23" }
+swc_next_ast_macros = { git = "https://github.com/swc-project/swc-next", rev = "f523d94fb28dbc52e89b23eaa217df6c6853ce23" }
+swc_next_ecma_ast = { git = "https://github.com/swc-project/swc-next", rev = "f523d94fb28dbc52e89b23eaa217df6c6853ce23" }
+swc_next_ecma_parser = { git = "https://github.com/swc-project/swc-next", rev = "f523d94fb28dbc52e89b23eaa217df6c6853ce23" }
+swc_next_ecma_semantic = { git = "https://github.com/swc-project/swc-next", rev = "f523d94fb28dbc52e89b23eaa217df6c6853ce23" }
+swc_next_regular_expression = { git = "https://github.com/swc-project/swc-next", rev = "f523d94fb28dbc52e89b23eaa217df6c6853ce23" }
+swc_next_simd = { git = "https://github.com/swc-project/swc-next", rev = "f523d94fb28dbc52e89b23eaa217df6c6853ce23" }
