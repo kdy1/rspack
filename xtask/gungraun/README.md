@@ -99,6 +99,17 @@ are summed over the recorded profiles by Gungraun. Metadata and catalogs must
 match the intended workload before interpreting the result. Artifacts expire
 after 30 days; retain evidence needed for optimization decisions.
 
+[Full-suite same-revision validation](https://github.com/kdy1/rspack/actions/runs/39928018690)
+passed at `7c7255aafc05d7c8380eccd7d11f307c0e2e7528`: 44 compiler/stage cases,
+13 source cases, and two large bundle cases. Downloaded artifacts contain all
+59 comparisons and matching catalogs, 138 verified harness file hashes, and
+matching Cargo feature configurations. Worker-thread counts are included in the
+totals. Forty-one cases produced identical counts; the largest absolute change
+was 0.108% in persistent-cache restore. This establishes harness coverage and
+records same-revision variability; it is not an optimization result. Later
+registration and feature-validation guards were checked locally against these
+artifacts, with ten Python checks and Clippy on the changed Rust targets.
+
 ```bash
 gh run download <run-id> --repo kdy1/rspack --dir <result-directory>
 
