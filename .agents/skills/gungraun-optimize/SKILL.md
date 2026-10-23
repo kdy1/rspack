@@ -1,19 +1,19 @@
 ---
 name: gungraun-optimize
-description: Optimize Rspack with Gungraun profiles and exact base/head comparisons in kdy1/rspack GitHub Actions, then publish passing changes as draft PRs to web-infra-dev/rspack. Use for CI-based instruction, cache, or allocation optimization; excludes the local Docker/Valgrind workflow.
+description: Optimize Rspack with Gungraun profiles and exact base/head comparisons in kdy1/rspack GitHub Actions, then obtain human approval for each passing change before publishing it as a draft PR to web-infra-dev/rspack. Use for CI-based instruction, cache, or allocation optimization; excludes the local Docker/Valgrind workflow.
 ---
 
 # Gungraun optimize
 
-Adapted from [swc-next's Gungraun optimization workflow](https://github.com/swc-project/swc-next/tree/main/.agents/skills/gungraun-optimize). Measure before accepting an optimization. Keep provisional experiments PR-free, and publish each accepted optimization through `$create-pr`.
+Adapted from [swc-next's Gungraun optimization workflow](https://github.com/swc-project/swc-next/tree/main/.agents/skills/gungraun-optimize). Measure before accepting an optimization. Keep provisional experiments PR-free, and obtain human approval for each proposed upstream PR before publishing it through `$create-pr`.
 
 ## Repository routing
 
 - **Measurement repository:** `kdy1/rspack`. Push experiment branches here and run all Gungraun Actions comparisons here. Pass `--repo kdy1/rspack` explicitly to workflow, run, and artifact commands.
-- **Optimization PR repository:** `web-infra-dev/rspack`. Use a clean head branch in `kdy1/rspack`, based on the upstream default branch, and request a **draft** PR through `$create-pr` only after the performance gate passes.
+- **Optimization PR repository:** `web-infra-dev/rspack`. Use a clean head branch in `kdy1/rspack`, based on the upstream default branch, and request a **draft** PR through `$create-pr` only after the performance gate passes and the user explicitly approves that individual PR.
 - Discover the upstream default branch and resolve its exact SHA. Verify the fork's parent and remote URLs instead of assuming that `origin` or the checkout's default PR target is upstream.
 - Never push a default branch. Do not publish experiment PRs to trigger benchmarks. Do not include fork-only commits, this fork's skill configuration, or temporary measurement infrastructure in an upstream optimization PR.
-- Loading or editing this skill does not authorize an optimization run or publication. An invoked optimization task carries its requested scope and publication authorization to `$create-pr`; do not expand it.
+- Loading or editing this skill does not authorize remote actions. Confirm that the task authorizes fork branch pushes and Actions comparisons before performing them; reuse authorization already given for this CI-based workflow. A local-only optimization request does not authorize them. Upstream PR creation always requires the separate per-PR approval below; a request to optimize or run CI is not that approval.
 
 Use separate measurement and publication branches. A measurement branch can include temporary harness commits; a publication branch contains only the accepted production change and relevant correctness tests. Preserve unrelated work and PRs.
 
@@ -65,8 +65,10 @@ Keep this gate in the optimization decision process. New benchmark workflows sho
 
 1. Create a clean publication branch from the frozen upstream base and transfer only the accepted optimization. Inspect its full diff and ancestry against upstream. Require one focused optimization commit and no temporary harness or fork-only ancestry.
 2. Verify the measured and published production diffs match and record both SHAs. Run required correctness checks on the publication branch before handing off. If transfer, rebase, or conflict resolution changes production code or its base, remeasure that resulting revision with the same harness before publication.
-3. Invoke `$create-pr` with explicit target `web-infra-dev/rspack`, head repository `kdy1/rspack`, the verified push remote and head branch, upstream base branch, and `draft: true`. Supply the template, validation results and coverage, incremental and cumulative run URLs, exact metric tables, regression details, and measured-to-published SHA mapping. Resolve the installed skill; if unavailable, report the missing publication dependency instead of bypassing it.
-4. Verify the resulting PR's base repository, head repository, branch, SHA, and draft state. Register it with T3's `link_pull_request` and verify it with `list_thread_pull_requests` when available.
+3. Prepare the complete proposed PR before requesting approval: show the upstream repository and base branch, fork head branch and exact commit SHA, intended diff, draft title/body, correctness results, performance counts and run links, and any tradeoffs. Explain that this skill requires human approval for each upstream PR.
+4. Wait for the user's explicit approval of this individual proposal. A passing performance gate, approval of another PR, or general permission to optimize is insufficient. If the proposed diff, base, head SHA, or material evidence changes before publication, present the revised proposal and obtain approval again. If approval is withheld or pending, keep the change unpublished. Record the approval with the proposed PR identity and revision.
+5. After approval, invoke `$create-pr` with explicit target `web-infra-dev/rspack`, head repository `kdy1/rspack`, the verified push remote and head branch, upstream base branch, and `draft: true`. Supply the recorded per-PR approval, template, validation results and coverage, incremental and cumulative run URLs, exact metric tables, regression details, and measured-to-published SHA mapping. Resolve the installed skill; if unavailable, report the missing publication dependency instead of bypassing it.
+6. Verify the resulting PR's base repository, head repository, branch, SHA, and draft state. Register it with T3's `link_pull_request` and verify it with `list_thread_pull_requests` when available.
 
 Default to independent upstream PRs: start the next optimization from upstream and establish its own baseline. Do not put a second change on top of an unmerged fork head and then open it against upstream trunk; that would include the first change in the second PR. If the user requests a dependent stack, establish supported cross-repository stack routing first and use the applicable stack skill; never create base branches in upstream without authorization.
 
