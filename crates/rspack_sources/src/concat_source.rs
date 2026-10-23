@@ -1,4 +1,5 @@
 use std::{
+  any::TypeId,
   borrow::Cow,
   cell::RefCell,
   hash::{Hash, Hasher},
@@ -141,7 +142,9 @@ impl ConcatSource {
 
     // First check if it's already a BoxSource containing a ConcatSource
     if let Some(box_source) = source.as_any().downcast_ref::<BoxSource>() {
-      if let Some(concat_source) = box_source.as_ref().as_any().downcast_ref::<ConcatSource>() {
+      if box_source.as_ref().type_id() == TypeId::of::<ConcatSource>()
+        && let Some(concat_source) = box_source.as_ref().as_any().downcast_ref::<ConcatSource>()
+      {
         // Extend with existing children (cheap clone due to Arc)
         let original_children = concat_source.children.lock().unwrap();
         let other_children = match concat_source.is_optimized.get() {
