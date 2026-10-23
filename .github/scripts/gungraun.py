@@ -21,6 +21,50 @@ ROOT = Path(__file__).resolve().parents[2]
 HARNESS = Path('xtask/gungraun')
 FIXTURE = Path('xtask/benchmark/benches/fixtures/rspack_sources/antd-mini/antd.min.js.map')
 SUITES = ('sources', 'all', 'benches', 'rspack_sources', 'walltime')
+SWC_NEXT_GIT = ('https://github.com/swc-project/swc-next', 'https://github.com/kdy1/swc-next')
+
+
+def swc_next_patch(workflow, head):
+    """Return the head-only swc-next patch table, or None when manifests are identical."""
+    if head == workflow:
+        return None
+    if not head.startswith(workflow):
+        raise ValueError('Workspace dependencies or build profiles differ from the workflow revision')
+    tomllib.loads(head)
+    extra = tomllib.loads(head[len(workflow):])
+    patch = extra.get('patch')
+    if list(extra) != ['patch'] or list(patch) != ['crates-io'] or not patch['crates-io']:
+        raise ValueError('Only a [patch.crates-io] section may be added to the head Cargo.toml')
+    for name, spec in patch['crates-io'].items():
+        if (not name.startswith('swc_next_') or not isinstance(spec, dict)
+                or set(spec) != {'git', 'rev'} or spec['git'] not in SWC_NEXT_GIT
+                or not re.fullmatch(r'[0-9a-f]{40}', spec['rev'])):
+            raise ValueError(f'Unsupported head patch entry: {name}')
+    return patch['crates-io']
+
+
+def swc_next_ids(features):
+    """Ignore the source and version of swc_next_* package ids, which the head-only patch changes."""
+    return {re.sub(r'^.*#(swc_next_\w+)@.*$', r'swc_next:\1', package): value
+            for package, value in features.items()}
+
+
+def check_swc_next_lock(before, after, patch):
+    """Require that a regenerated lockfile only changes patched swc_next_* packages."""
+    def packages(text):
+        return tomllib.loads(text)['package']
+    old, new = packages(before), packages(after)
+    keep = lambda pkgs: sorted(json.dumps(p, sort_keys=True) for p in pkgs
+                               if not p['name'].startswith('swc_next_'))
+    if keep(old) != keep(new):
+        raise ValueError('Patched lockfile changed packages other than swc_next_*')
+    for package in new:
+        name = package['name']
+        if name in patch:
+            if not package.get('source', '').startswith(f"git+{patch[name]['git']}?rev={patch[name]['rev']}#"):
+                raise ValueError(f'Patched package does not use the requested git revision: {name}')
+        elif name.startswith('swc_next_') and package.get('source', '').startswith('git+'):
+            raise ValueError(f'Unexpected git package: {name}')
 
 
 def select_catalog(catalog, name_filter):
@@ -182,8 +226,14 @@ def main():
                     # Freeze build flags as well as the toolchain, without replacing product files.
                     if (source / '.cargo/config.toml').read_bytes() != (ROOT / '.cargo/config.toml').read_bytes():
                         raise ValueError('Cargo configuration differs from the workflow revision')
-                    if args.suite != 'sources' and (source / 'Cargo.toml').read_bytes() != (ROOT / 'Cargo.toml').read_bytes():
-                        raise ValueError('Workspace dependencies or build profiles differ from the workflow revision')
+                    patch = None
+                    if args.suite != 'sources':
+                        workflow_manifest = (ROOT / 'Cargo.toml').read_text()
+                        if label == 'base':
+                            if (source / 'Cargo.toml').read_text() != workflow_manifest:
+                                raise ValueError('Workspace dependencies or build profiles differ from the workflow revision')
+                        else:
+                            patch = swc_next_patch(workflow_manifest, (source / 'Cargo.toml').read_text())
                     destination = source / HARNESS
                     if destination.exists():
                         shutil.rmtree(destination)
@@ -195,9 +245,18 @@ def main():
                     if args.suite != 'sources':
                         prepare(ROOT, source)
                         shutil.copyfile(ROOT / HARNESS / 'workspace.Cargo.lock', source / 'Cargo.lock')
+                        if patch:
+                            # Head-only: lock the requested swc-next git revision, keeping every other version.
+                            before = (source / 'Cargo.lock').read_text()
+                            subprocess.run(['cargo', 'metadata', '--format-version', '1', '--manifest-path',
+                                            str(source / 'Cargo.toml')], cwd=source, env=env, check=True,
+                                           stdout=subprocess.DEVNULL)
+                            check_swc_next_lock(before, (source / 'Cargo.lock').read_text(), patch)
+                            metadata['head_swc_next_patch'] = patch
                         driver, features = build_driver(source, env, output / f'{label}-build.log')
                         metadata[f'{label}_build_features'] = features
-                        if label == 'head' and features != metadata['base_build_features']:
+                        if label == 'head' and (features if not patch else swc_next_ids(features)) != (
+                                metadata['base_build_features'] if not patch else swc_next_ids(metadata['base_build_features'])):
                             raise ValueError('Base/head Cargo build features differ')
                         discovery = run(driver, '--list', args.suite, cwd=source, env=env)
                         (output / f'{label}-discovery.log').write_text(discovery)

@@ -3,7 +3,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from gungraun import build_features, compare, read_summaries, select_catalog
+from gungraun import (build_features, check_swc_next_lock, compare, read_summaries, select_catalog,
+                      swc_next_ids, swc_next_patch)
 from prepare import adapt, prepare, registered_entries
 
 
@@ -83,6 +84,36 @@ class ComparisonTests(unittest.TestCase):
             self.assertIn('stages::real_content_hash::bench', driver.read_text())
             self.assertIn('walltime::threejs_10x_bundle_benchmark', driver.read_text())
             self.assertIn('gungraun_driver', (source / 'xtask/benchmark/Cargo.toml').read_text())
+
+    def test_swc_next_patch_is_the_only_allowed_manifest_difference(self):
+        rev = 'a' * 40
+        root = '[workspace]\nmembers = []\n'
+        entry = f'swc_next_simd = {{ git = "https://github.com/kdy1/swc-next", rev = "{rev}" }}\n'
+        self.assertIsNone(swc_next_patch(root, root))
+        self.assertEqual(swc_next_patch(root, root + '\n[patch.crates-io]\n' + entry)['swc_next_simd']['rev'], rev)
+        for bad in (root + 'members = 1\n', root.replace('[]', '["x"]'),
+                    root + '\n[patch.crates-io]\n' + entry.replace('swc_next_simd', 'serde'),
+                    root + '\n[patch.crates-io]\n' + entry.replace('kdy1', 'someone'),
+                    root + '\n[patch.crates-io]\n' + entry.replace(rev, 'main'),
+                    root + '\n[patch.crates-io]\n' + entry + '\n[profile.release]\nlto = true\n'):
+            with self.assertRaises(ValueError):
+                swc_next_patch(root, bad)
+
+    def test_swc_next_lock_may_only_change_swc_next_packages(self):
+        rev = 'b' * 40
+        patch = {'swc_next_simd': dict(git='https://github.com/kdy1/swc-next', rev=rev)}
+        before = ('[[package]]\nname = "serde"\nversion = "1.0.0"\n\n[[package]]\nname = "swc_next_simd"\n'
+                  'version = "0.3.0"\nsource = "registry+https://github.com/rust-lang/crates.io-index"\n')
+        git = f'git+https://github.com/kdy1/swc-next?rev={rev}#{"c" * 40}'
+        after = before.replace('0.3.0', '0.3.2').replace(
+            'registry+https://github.com/rust-lang/crates.io-index', git)
+        check_swc_next_lock(before, after, patch)
+        with self.assertRaisesRegex(ValueError, 'other than swc_next'):
+            check_swc_next_lock(before, after.replace('1.0.0', '1.0.1'), patch)
+        with self.assertRaisesRegex(ValueError, 'requested git revision'):
+            check_swc_next_lock(before, before, patch)
+        self.assertEqual(swc_next_ids({'registry+https://x#swc_next_simd@0.3.0': 1}),
+                         swc_next_ids({f'git+https://y?rev={rev}#swc_next_simd@0.3.2': 1}))
 
 
 if __name__ == '__main__':
