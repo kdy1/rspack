@@ -6,7 +6,7 @@ Read this when creating, auditing, or repairing the measurement harness. All wor
 
 GitHub requires a `workflow_dispatch` workflow to exist on the default branch before manual dispatch is available. Check the fork's actual workflows first. Adding a dispatch file only to an experiment branch does not establish this prerequisite.
 
-If missing, prepare a minimal permanent dispatch entry point for a separate fork PR through `$create-pr`, within the user's authorization. Report that it must land before measurements can start. Do not push or merge the default branch, open an upstream setup PR, or create experiment PRs to work around the prerequisite. Preparing this skill alone does not install a workflow.
+If missing, prepare a minimal permanent dispatch entry point for a separate fork PR through `$create-pr`, within the user's authorization. Report that it must land before measurements can start. Do not push or merge the default branch, open an upstream setup PR, or create experiment PRs to work around the prerequisite. This repository includes `.github/workflows/gungraun.yml`; it becomes manually dispatchable after the infrastructure PR lands on the fork default branch. Infrastructure PR runs compare the same head SHA twice to validate the harness, not to accept an optimization.
 
 Once a dispatch entry point exists, run its measurement implementation from a task-owned branch with `--ref`. Prefer an existing valid Gungraun workflow. Otherwise use a separate temporary branch for the harness, fixture/configuration changes, reporting, and Actions implementation. Record its commit, files, and manifest hunks. Keep this infrastructure out of upstream production branches.
 
@@ -24,7 +24,7 @@ Consult the official [CI setup](https://gungraun.github.io/gungraun/latest/html/
 
 ## Exact revision comparisons
 
-The following commands describe a proposed `gungraun.yml` interface. Confirm the installed workflow's file name and inputs before dispatch; do not assume it already exists.
+The included `gungraun.yml` accepts required full-SHA `base_ref` and `head_ref` inputs and an optional `filter`. See `xtask/gungraun/README.md` for the initial source workloads. Confirm the workflow has landed before dispatch.
 
 ```bash
 gh workflow run gungraun.yml --repo kdy1/rspack --ref "$WORKFLOW_BRANCH" \

@@ -1,0 +1,75 @@
+name: Gungraun
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: 'Exact base commit SHA in kdy1/rspack'
+        required: true
+        type: string
+      head_ref:
+        description: 'Exact head commit SHA in kdy1/rspack'
+        required: true
+        type: string
+      filter:
+        description: 'Gungraun benchmark filter (empty runs all cases)'
+        default: ''
+        type: string
+  pull_request:
+    paths:
+      - '.github/workflows/gungraun.yml'
+      - '.github/scripts/gungraun.py'
+      - '.github/scripts/test_gungraun.py'
+      - 'xtask/gungraun/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gungraun-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    # Fork-owned infrastructure; PR runs validate the harness with identical SHAs.
+    if: github.repository == 'kdy1/rspack' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == 'kdy1/rspack')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CARGO_INCREMENTAL: '0'
+      GLIBC_TUNABLES: glibc.cpu.hwcaps=-AVX512F,-AVX2,-AVX,-AVX_Fast_Unaligned_Load,-ERMS,-Prefer_ERMS,-SSE4_2,-SSSE3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: kdy1/rspack
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check comparison parser
+        run: python3 -m unittest discover -s .github/scripts -p test_gungraun.py
+      - name: Install Rust
+        run: |
+          toolchain=$(python3 -c 'import tomllib; print(tomllib.load(open("rust-toolchain.toml", "rb"))["toolchain"]["channel"])')
+          rustup toolchain install "$toolchain" --profile minimal
+      - name: Install Valgrind and matching Gungraun runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes valgrind
+          cargo install --locked gungraun-runner --version 0.20.0
+      - name: Compare revisions
+        env:
+          BASE_SHA: ${{ inputs.base_ref || github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ inputs.head_ref || github.event.pull_request.head.sha }}
+          BENCH_FILTER: ${{ inputs.filter }}
+        run: |
+          python3 .github/scripts/gungraun.py \
+            --base "$BASE_SHA" --head "$HEAD_SHA" --filter "$BENCH_FILTER" \
+            --output "$RUNNER_TEMP/gungraun-results"
+      - name: Upload summaries and raw profiles
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: gungraun-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/gungraun-results
+          if-no-files-found: warn
+          retention-days: 30
