@@ -36,6 +36,16 @@ def select_catalog(catalog, name_filter):
     return selected
 
 
+def build_features(artifacts):
+    features = {}
+    for artifact in artifacts:
+        features.setdefault(artifact['package_id'], set()).add(tuple(sorted(artifact['features'])))
+    # A package can be compiled with different host/target feature sets. Preserve
+    # each set without depending on Cargo's parallel artifact emission order.
+    return {package: [list(config) for config in sorted(configs)]
+            for package, configs in sorted(features.items())}
+
+
 def build_driver(source, env, log):
     command = ['cargo', 'bench', '--locked', '-p', 'rspack_benchmark', '--features', 'gungraun',
                '--bench', 'gungraun_driver', '--profile', 'codspeed', '--no-run',
@@ -52,7 +62,7 @@ def build_driver(source, env, log):
                    and message.get('executable')]
     if len(executables) != 1:
         raise ValueError('Expected exactly one benchmark driver executable')
-    return executables[0], {message['package_id']: message['features'] for message in artifacts}
+    return executables[0], build_features(artifacts)
 
 
 def run(*args, cwd=ROOT, env=None):

@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from gungraun import compare, read_summaries, select_catalog
+from gungraun import build_features, compare, read_summaries, select_catalog
 from prepare import adapt, prepare, registered_entries
 
 
@@ -50,6 +50,12 @@ class ComparisonTests(unittest.TestCase):
             select_catalog(catalog, 'missing')
         with self.assertRaisesRegex(ValueError, 'IDs collide'):
             select_catalog([('case', 'a-b'), ('case', 'a_b')], '')
+
+    def test_build_features_ignore_artifact_order(self):
+        artifacts = [dict(package_id='serde', features=['std', 'derive']),
+                     dict(package_id='serde', features=['derive'])]
+        self.assertEqual(build_features(artifacts), build_features(reversed(artifacts)))
+        self.assertEqual(build_features(artifacts)['serde'], [['derive'], ['derive', 'std']])
 
     def test_adapter_preserves_routines(self):
         routine = 'b.iter_batched(|| setup(), |input| run(input), criterion::BatchSize::PerIteration);'
