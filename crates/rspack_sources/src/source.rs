@@ -3,6 +3,7 @@ use std::{
   borrow::Cow,
   fmt,
   hash::{Hash, Hasher},
+  io::BufWriter,
   sync::Arc,
 };
 
@@ -692,9 +693,12 @@ impl<'a> SourceMap<'a> {
 
   /// Generate source map to a json string.
   pub fn to_json(&self) -> String {
-    let mut buffer = Vec::with_capacity(self.json_size_hint());
+    // Coalesce the serializer's small escape and punctuation writes before
+    // appending them to the output allocation.
+    let mut writer = BufWriter::new(Vec::with_capacity(self.json_size_hint()));
 
-    simd_json::to_writer(&mut buffer, self).unwrap();
+    simd_json::to_writer(&mut writer, self).expect("serialize source map JSON");
+    let buffer = writer.into_inner().expect("flush source map JSON to Vec");
 
     // SAFETY: simd_json always produces valid UTF-8 JSON
     #[allow(unsafe_code)]
