@@ -9,13 +9,13 @@ The workflow reports counts without performance-failure thresholds.
 
 The manual workflow accepts these `suite` values:
 
-| Suite | Cases |
-| --- | --- |
-| `all` (manual default) | All existing Rust benchmarks below, including the large bundle cases |
-| `benches` | Graph construction and APIs, dependency scanning, JavaScript compiler source maps, bundles, compilation stages, and persistent-cache restore |
-| `rspack_sources` | All cases registered by the existing isolated `rspack_sources` Criterion target |
-| `walltime` | Both `threejs-10x` bundle cases, measured as instructions |
-| `sources` | Original lightweight smoke suite: concat with 16/500 children and Ant Design source-map parsing/serialization |
+| Suite                  | Cases                                                                                                                                        |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `all` (manual default) | All existing Rust benchmarks below, including the large bundle cases                                                                         |
+| `benches`              | Graph construction and APIs, dependency scanning, JavaScript compiler source maps, bundles, compilation stages, and persistent-cache restore |
+| `rspack_sources`       | All cases registered by the existing isolated `rspack_sources` Criterion target                                                              |
+| `walltime`             | Both `threejs-10x` bundle cases, measured as instructions                                                                                    |
+| `sources`              | Original lightweight smoke suite: concat with 16/500 children and Ant Design source-map parsing/serialization                                |
 
 The full suites reuse registrations from `xtask/benchmark/benches/benches.rs`,
 `rspack_sources.rs`, and `walltime.rs`. An adapter executes the existing routines
