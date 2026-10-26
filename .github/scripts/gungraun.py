@@ -73,6 +73,35 @@ def write_json(path, data):
     path.write_text(json.dumps(data, indent=2) + '\n')
 
 
+def preserve_binary(executable, destination):
+    executable = Path(executable)
+    sections = run('readelf', '--sections', '--wide', str(executable))
+    if '.debug_info' not in sections or '.symtab' not in sections:
+        raise ValueError(f'Measured executable lacks debug information or symbols: {executable}')
+    shutil.copyfile(executable, destination)
+    destination.with_suffix('.sections.txt').write_text(sections + '\n')
+    return hashlib.sha256(destination.read_bytes()).hexdigest()
+
+
+def annotate_profiles(home, destination, baseline=False):
+    destination.mkdir(parents=True, exist_ok=True)
+    profiles = [p for p in sorted(home.rglob('callgrind.*'))
+                if p.is_file() and '.out' in p.name
+                and (baseline or '.base@' not in p.name)]
+    if not profiles:
+        raise ValueError('No current Callgrind profiles to annotate')
+    for profile in profiles:
+        relative = profile.relative_to(home)
+        for inclusive in ('no', 'yes'):
+            report = destination / relative.with_name(relative.name + f'.inclusive-{inclusive}.txt')
+            report.parent.mkdir(parents=True, exist_ok=True)
+            with report.open('w') as output:
+                subprocess.run(['callgrind_annotate', '--show=Ir', '--sort=Ir',
+                                '--threshold=100', '--auto=no', '--tree=both',
+                                f'--inclusive={inclusive}', str(profile)],
+                               stdout=output, check=True)
+
+
 def read_summaries(directory, baseline=False):
     cases = {}
     for path in sorted(directory.rglob('summary.json')):
@@ -196,6 +225,8 @@ def main():
                         prepare(ROOT, source)
                         shutil.copyfile(ROOT / HARNESS / 'workspace.Cargo.lock', source / 'Cargo.lock')
                         driver, features = build_driver(source, env, output / f'{label}-build.log')
+                        metadata[f'{label}_binary_sha256'] = preserve_binary(
+                            driver, output / f'{label}-driver')
                         metadata[f'{label}_build_features'] = features
                         if label == 'head' and features != metadata['base_build_features']:
                             raise ValueError('Base/head Cargo build features differ')
@@ -224,6 +255,14 @@ def main():
                                                 stdout=log, stderr=subprocess.STDOUT)
                     print((output / f'{label}.log').read_text(), flush=True)
                     result.check_returncode()
+                    if args.suite == 'sources':
+                        executables = [p for p in (output / 'target/release/deps').glob('sources-*')
+                                       if p.is_file() and os.access(p, os.X_OK) and p.suffix == '']
+                        if len(executables) != 1:
+                            raise ValueError('Expected exactly one sources executable')
+                        metadata[f'{label}_binary_sha256'] = preserve_binary(
+                            executables[0], output / f'{label}-sources')
+                    annotate_profiles(home, output / f'{label}-annotations', baseline=label == 'base')
                     snapshots = output / label
                     for summary in home.rglob('summary.json'):
                         target = snapshots / summary.relative_to(home)
@@ -257,7 +296,7 @@ def main():
         raise
     finally:
         write_json(output / 'metadata.json', metadata)
-        # Keep profiles and summaries, not compiled binaries, in the artifact.
+        # Exact measured executables were copied above; remove intermediate build files.
         shutil.rmtree(output / 'target', ignore_errors=True)
 
 
