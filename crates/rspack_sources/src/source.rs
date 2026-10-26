@@ -7,7 +7,7 @@ use std::{
 };
 
 use serde::{Serialize, Serializer};
-use simd_json::{BorrowedValue, ErrorType, prelude::*};
+use simd_json::{ErrorType, prelude::*, value::lazy::Value};
 
 use crate::{
   ReplaceSource, Result,
@@ -458,8 +458,8 @@ impl SourceMap<'static> {
   /// Create a [SourceMap] from bytes.
   pub fn from_bytes(mut bytes: Vec<u8>) -> Result<Self> {
     let fields = {
-      let borrowed_value = simd_json::to_borrowed_value(bytes.as_mut_slice())?;
-      let fields = deserialize_source_map_fields(&borrowed_value)?;
+      let tape = simd_json::to_tape(bytes.as_mut_slice())?;
+      let fields = deserialize_source_map_fields(tape.as_value())?;
       #[allow(unsafe_code)]
       // SAFETY: All borrowed strings in `fields` point into the stable backing
       // allocation of `bytes`; the returned SourceMap stores `bytes` in
@@ -742,57 +742,76 @@ impl Hash for SourceMap<'_> {
   }
 }
 
-fn deserialize_source_map_fields<'a>(value: &'a BorrowedValue<'a>) -> Result<SourceMapFields<'a>> {
+fn deserialize_source_map_fields<'a>(
+  value: simd_json::tape::Value<'_, 'a>,
+) -> Result<SourceMapFields<'a>> {
+  let object = value
+    .into_object()
+    .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedMap))?;
+  let mut seen = 0u8;
+  let mut duplicate = false;
+  for (key, _) in &object {
+    let bit = match key {
+      "mappings" => 1,
+      "file" => 2,
+      "sources" => 4,
+      "sourcesContent" => 8,
+      "names" => 16,
+      "sourceRoot" => 32,
+      "debugId" => 64,
+      "ignoreList" => 128,
+      _ => continue,
+    };
+    duplicate |= seen & bit != 0;
+    seen |= bit;
+  }
+  let value = Value::from_tape(value);
+  // Duplicate-key lookup depends on the DOM's object representation. Keep that
+  // path unchanged; ordinary maps can borrow directly from the validated tape.
+  let value = if duplicate {
+    Value::Value(Cow::Owned(value.into_value()))
+  } else {
+    value
+  };
   let object = value
     .as_object()
     .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedMap))?;
-  let mappings = required_string_field(object, "mappings")?;
+  let mappings = required_string_field(object.get("mappings"))?;
 
   Ok(SourceMapFields {
     version: 3,
-    file: optional_string_field(object, "file")?,
-    sources: Cow::Owned(optional_string_array_field(object, "sources")?),
-    sources_content: Cow::Owned(optional_string_array_field(object, "sourcesContent")?),
-    names: Cow::Owned(optional_string_array_field(object, "names")?),
+    file: optional_string_field(object.get("file"))?,
+    sources: Cow::Owned(optional_string_array_field(object.get("sources"))?),
+    sources_content: Cow::Owned(optional_string_array_field(object.get("sourcesContent"))?),
+    names: Cow::Owned(optional_string_array_field(object.get("names"))?),
     mappings,
-    source_root: optional_string_field(object, "sourceRoot")?,
-    debug_id: optional_string_field(object, "debugId")?,
-    ignore_list: optional_u32_array_field(object, "ignoreList")?,
+    source_root: optional_string_field(object.get("sourceRoot"))?,
+    debug_id: optional_string_field(object.get("debugId"))?,
+    ignore_list: optional_u32_array_field(object.get("ignoreList"))?,
   })
 }
 
-fn required_string_field<'a>(
-  object: &'a simd_json::borrowed::Object<'a>,
-  key: &str,
-) -> Result<Cow<'a, str>> {
-  object
-    .get(key)
-    .and_then(BorrowedValue::as_str)
-    .map(Cow::Borrowed)
+fn required_string_field<'a>(value: Option<Value<'_, '_, 'a>>) -> Result<Cow<'a, str>> {
+  value
+    .and_then(|value| value.into_string())
     .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedString).into())
 }
 
-fn optional_string_field<'a>(
-  object: &'a simd_json::borrowed::Object<'a>,
-  key: &str,
-) -> Result<Option<Cow<'a, str>>> {
-  let Some(value) = object.get(key) else {
+fn optional_string_field<'a>(value: Option<Value<'_, '_, 'a>>) -> Result<Option<Cow<'a, str>>> {
+  let Some(value) = value else {
     return Ok(None);
   };
   if value.is_null() {
     return Ok(None);
   }
   value
-    .as_str()
-    .map(|value| Some(Cow::Borrowed(value)))
+    .into_string()
+    .map(Some)
     .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedString).into())
 }
 
-fn optional_string_array_field<'a>(
-  object: &'a simd_json::borrowed::Object<'a>,
-  key: &str,
-) -> Result<Vec<Cow<'a, str>>> {
-  let Some(value) = object.get(key) else {
+fn optional_string_array_field<'a>(value: Option<Value<'_, '_, 'a>>) -> Result<Vec<Cow<'a, str>>> {
+  let Some(value) = value else {
     return Ok(Vec::new());
   };
   if value.is_null() {
@@ -808,8 +827,7 @@ fn optional_string_array_field<'a>(
         Ok(Cow::Borrowed(""))
       } else {
         value
-          .as_str()
-          .map(Cow::Borrowed)
+          .into_string()
           .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedString).into())
       }
     })
@@ -817,10 +835,9 @@ fn optional_string_array_field<'a>(
 }
 
 fn optional_u32_array_field<'a>(
-  object: &'a simd_json::borrowed::Object<'a>,
-  key: &str,
+  value: Option<Value<'_, '_, 'a>>,
 ) -> Result<Option<Cow<'a, [u32]>>> {
-  let Some(value) = object.get(key) else {
+  let Some(value) = value else {
     return Ok(None);
   };
   if value.is_null() {
