@@ -126,6 +126,24 @@ pub fn push_absolute_to_request(context: &str, maybe_absolute_path: &str, out: &
 
   if maybe_absolute_path.starts_with('/') {
     let (maybe_absolute_resource, query_part) = split_at_query_mark(maybe_absolute_path);
+    // A normalized descendant already has the required relative suffix. Keep
+    // Windows root handling and paths that need normalization in SugarPath.
+    #[cfg(not(windows))]
+    if context.starts_with('/')
+      && let Some(relative) = maybe_absolute_resource
+        .strip_prefix(if context == "/" { "" } else { context })
+        .and_then(|suffix| suffix.strip_prefix('/'))
+      && maybe_absolute_resource[1..]
+        .split('/')
+        .all(|part| !matches!(part, "" | "." | ".."))
+    {
+      push_relative_path_to_request(relative, out);
+      if let Some(query_part) = query_part {
+        out.push_str(query_part);
+      }
+      return;
+    }
+
     let tmp = Path::new(maybe_absolute_resource).relative(context);
     let tmp_path = tmp.to_string_lossy();
     push_relative_path_to_request(&tmp_path, out);
