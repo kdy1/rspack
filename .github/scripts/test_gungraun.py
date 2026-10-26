@@ -2,12 +2,42 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from gungraun import build_features, compare, read_summaries, select_catalog
+from gungraun import annotate_profiles, build_features, compare, preserve_binary, read_summaries, select_catalog
 from prepare import adapt, prepare, registered_entries
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_binary_requires_debug_symbols(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = root / 'driver'
+            executable.write_bytes(b'example executable')
+            with patch('gungraun.run', return_value='.symtab'):
+                with self.assertRaisesRegex(ValueError, 'lacks debug information'):
+                    preserve_binary(executable, root / 'saved')
+            with patch('gungraun.run', return_value='.symtab .debug_info'):
+                digest = preserve_binary(executable, root / 'saved')
+            self.assertEqual(len(digest), 64)
+            self.assertEqual((root / 'saved').read_bytes(), executable.read_bytes())
+
+    def test_annotations_select_current_and_saved_baseline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            home = root / 'profiles'
+            home.mkdir()
+            (home / 'callgrind.case.out.base@base').touch()
+            with patch('gungraun.subprocess.run') as annotate:
+                annotate_profiles(home, root / 'base', baseline=True)
+                self.assertEqual(annotate.call_count, 2)
+            (home / 'callgrind.case.out').touch()
+            with patch('gungraun.subprocess.run') as annotate:
+                annotate_profiles(home, root / 'head')
+                self.assertEqual(annotate.call_count, 2)
+                self.assertTrue(all(call.args[0][-1].endswith('.out')
+                                    for call in annotate.call_args_list))
+
     def test_exact_comparison(self):
         self.assertEqual(compare({'a': {'new': 100}}, {'a': {'new': 90, 'old': 100}})[0]['head'], 90)
 

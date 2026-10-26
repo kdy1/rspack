@@ -9,13 +9,13 @@ The workflow reports counts without performance-failure thresholds.
 
 The manual workflow accepts these `suite` values:
 
-| Suite | Cases |
-| --- | --- |
-| `all` (manual default) | All existing Rust benchmarks below, including the large bundle cases |
-| `benches` | Graph construction and APIs, dependency scanning, JavaScript compiler source maps, bundles, compilation stages, and persistent-cache restore |
-| `rspack_sources` | All cases registered by the existing isolated `rspack_sources` Criterion target |
-| `walltime` | Both `threejs-10x` bundle cases, measured as instructions |
-| `sources` | Original lightweight smoke suite: concat with 16/500 children and Ant Design source-map parsing/serialization |
+| Suite                  | Cases                                                                                                                                        |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `all` (manual default) | All existing Rust benchmarks below, including the large bundle cases                                                                         |
+| `benches`              | Graph construction and APIs, dependency scanning, JavaScript compiler source maps, bundles, compilation stages, and persistent-cache restore |
+| `rspack_sources`       | All cases registered by the existing isolated `rspack_sources` Criterion target                                                              |
+| `walltime`             | Both `threejs-10x` bundle cases, measured as instructions                                                                                    |
+| `sources`              | Original lightweight smoke suite: concat with 16/500 children and Ant Design source-map parsing/serialization                                |
 
 The full suites reuse registrations from `xtask/benchmark/benches/benches.rs`,
 `rspack_sources.rs`, and `walltime.rs`. An adapter executes the existing routines
@@ -98,6 +98,10 @@ measurement logs, and raw Callgrind profiles, including per-thread output. Count
 are summed over the recorded profiles by Gungraun. Metadata and catalogs must
 match the intended workload before interpreting the result. Artifacts expire
 after 30 days; retain evidence needed for optimization decisions.
+
+The artifact also retains each exact measured executable and its SHA-256 hash,
+verified DWARF/symbol sections, and self/inclusive Callgrind annotations with
+call relationships. Intermediate Cargo build files are removed before upload.
 
 [Full-suite same-revision validation](https://github.com/kdy1/rspack/actions/runs/39928018690)
 passed at `7c7255aafc05d7c8380eccd7d11f307c0e2e7528`: 44 compiler/stage cases,
