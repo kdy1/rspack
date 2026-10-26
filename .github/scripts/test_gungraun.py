@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import tempfile
+import tomllib
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +10,18 @@ from prepare import adapt, prepare, registered_entries
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_workspace_lock_preserves_upstream_dependencies(self):
+        root = Path(__file__).resolve().parents[2]
+        original = tomllib.loads((root / 'Cargo.lock').read_text())['package']
+        fixed = tomllib.loads((root / 'xtask/gungraun/workspace.Cargo.lock').read_text())['package']
+        # Cargo qualifies dependency names when the harness adds another version.
+        identity = lambda p: (p['name'], p['version'], p.get('source'), p.get('checksum'))
+        fixed_ids = {identity(package) for package in fixed}
+        for package in original:
+            if package.get('source'):
+                self.assertTrue(identity(package) in fixed_ids,
+                                f'Stale benchmark lockfile: {package["name"]}')
+
     def test_binary_requires_debug_symbols(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
