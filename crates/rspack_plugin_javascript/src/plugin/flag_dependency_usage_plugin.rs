@@ -681,9 +681,9 @@ fn collect_active_dependencies(
   let mut q = vec![];
   let mut queue = VecDeque::new();
   let mut dependencies = vec![];
-  queue.push_back(block_id);
+  let mut initial_block = Some(block_id);
   let runtime_spec = runtime.as_deref();
-  while let Some(block_id) = queue.pop_front() {
+  while let Some(block_id) = initial_block.take().or_else(|| queue.pop_front()) {
     let (blocks, block_dependencies) = match block_id {
       ModuleOrAsyncDependenciesBlock::Module(module) => {
         let block = module_graph
