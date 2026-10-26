@@ -31,10 +31,20 @@ class ComparisonTests(unittest.TestCase):
         # Cargo qualifies dependency names when the harness adds another version.
         identity = lambda p: (p['name'], p['version'], p.get('source'), p.get('checksum'))
         fixed_ids = {identity(package) for package in fixed}
+        fixed_workspace = {package['name']: package for package in fixed
+                           if not package.get('source')}
         for package in original:
             if package.get('source'):
                 self.assertTrue(identity(package) in fixed_ids,
                                 f'Stale benchmark lockfile: {package["name"]}')
+            else:
+                dependencies = lambda p: {dependency.split()[0]
+                                          for dependency in p.get('dependencies', [])}
+                expected = dependencies(package)
+                if package['name'] == 'rspack_benchmark':
+                    expected.add('gungraun')
+                self.assertEqual(dependencies(fixed_workspace[package['name']]), expected,
+                                 f'Stale workspace dependencies: {package["name"]}')
 
     def test_binary_requires_debug_symbols(self):
         with tempfile.TemporaryDirectory() as directory:
