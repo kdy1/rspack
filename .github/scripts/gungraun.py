@@ -46,10 +46,7 @@ def build_features(artifacts):
             for package, configs in sorted(features.items())}
 
 
-def build_driver(source, env, log):
-    command = ['cargo', 'bench', '--locked', '-p', 'rspack_benchmark', '--features', 'gungraun',
-               '--bench', 'gungraun_driver', '--profile', 'codspeed', '--no-run',
-               '--message-format=json']
+def build_executable(command, target, source, env, log):
     with log.open('w') as stderr:
         result = subprocess.run(command, cwd=source, env=env, text=True,
                                 stdout=subprocess.PIPE, stderr=stderr)
@@ -58,11 +55,18 @@ def build_driver(source, env, log):
     artifacts = [message for line in result.stdout.splitlines()
                  if (message := json.loads(line)).get('reason') == 'compiler-artifact']
     executables = [message['executable'] for message in artifacts
-                   if message['target']['name'] == 'gungraun_driver'
+                   if message['target']['name'] == target
                    and message.get('executable')]
     if len(executables) != 1:
-        raise ValueError('Expected exactly one benchmark driver executable')
+        raise ValueError('Expected exactly one current benchmark executable')
     return executables[0], build_features(artifacts)
+
+
+def build_driver(source, env, log):
+    command = ['cargo', 'bench', '--locked', '-p', 'rspack_benchmark', '--features', 'gungraun',
+               '--bench', 'gungraun_driver', '--profile', 'codspeed', '--no-run',
+               '--message-format=json']
+    return build_executable(command, 'gungraun_driver', source, env, log)
 
 
 def run(*args, cwd=ROOT, env=None):
@@ -221,6 +225,16 @@ def main():
                     (source / FIXTURE).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(ROOT / FIXTURE, source / FIXTURE)
                     target = 'sources'
+                    if args.suite == 'sources':
+                        executable, features = build_executable(
+                            ['cargo', 'bench', '--locked', '--manifest-path', str(HARNESS / 'Cargo.toml'),
+                             '--bench', 'sources', '--no-run', '--message-format=json'],
+                            'sources', source, env, output / f'{label}-build.log')
+                        metadata[f'{label}_binary_sha256'] = preserve_binary(
+                            executable, output / f'{label}-sources')
+                        metadata[f'{label}_build_features'] = features
+                        if label == 'head' and features != metadata['base_build_features']:
+                            raise ValueError('Base/head Cargo build features differ')
                     if args.suite != 'sources':
                         prepare(ROOT, source)
                         shutil.copyfile(ROOT / HARNESS / 'workspace.Cargo.lock', source / 'Cargo.lock')
@@ -255,13 +269,6 @@ def main():
                                                 stdout=log, stderr=subprocess.STDOUT)
                     print((output / f'{label}.log').read_text(), flush=True)
                     result.check_returncode()
-                    if args.suite == 'sources':
-                        executables = [p for p in (output / 'target/release/deps').glob('sources-*')
-                                       if p.is_file() and os.access(p, os.X_OK) and p.suffix == '']
-                        if len(executables) != 1:
-                            raise ValueError('Expected exactly one sources executable')
-                        metadata[f'{label}_binary_sha256'] = preserve_binary(
-                            executables[0], output / f'{label}-sources')
                     annotate_profiles(home, output / f'{label}-annotations', baseline=label == 'base')
                     snapshots = output / label
                     for summary in home.rglob('summary.json'):
