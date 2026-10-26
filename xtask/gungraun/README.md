@@ -99,6 +99,10 @@ are summed over the recorded profiles by Gungraun. Metadata and catalogs must
 match the intended workload before interpreting the result. Artifacts expire
 after 30 days; retain evidence needed for optimization decisions.
 
+The artifact also retains each exact measured executable and its SHA-256 hash,
+verified DWARF/symbol sections, and self/inclusive Callgrind annotations with
+call relationships. Intermediate Cargo build files are removed before upload.
+
 [Full-suite same-revision validation](https://github.com/kdy1/rspack/actions/runs/39928018690)
 passed at `7c7255aafc05d7c8380eccd7d11f307c0e2e7528`: 44 compiler/stage cases,
 13 source cases, and two large bundle cases. Downloaded artifacts contain all
