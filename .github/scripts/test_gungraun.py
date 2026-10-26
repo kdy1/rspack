@@ -2,14 +2,28 @@ import json
 from pathlib import Path
 import tempfile
 import tomllib
+import subprocess
 import unittest
 from unittest.mock import patch
 
-from gungraun import annotate_profiles, build_features, compare, preserve_binary, read_summaries, select_catalog
+from gungraun import annotate_profiles, build_executable, build_features, compare, preserve_binary, read_summaries, select_catalog
 from prepare import adapt, prepare, registered_entries
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_executable_comes_from_current_cargo_messages(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'sources-old').touch()
+            current = root / 'sources-current'
+            current.touch()
+            message = dict(reason='compiler-artifact', target=dict(name='sources'),
+                           executable=str(current), package_id='benchmark', features=[])
+            result = subprocess.CompletedProcess([], 0, stdout=json.dumps(message) + '\n')
+            with patch('gungraun.subprocess.run', return_value=result):
+                executable, _ = build_executable(['cargo'], 'sources', root, {}, root / 'build.log')
+            self.assertEqual(executable, str(current))
+
     def test_workspace_lock_preserves_upstream_dependencies(self):
         root = Path(__file__).resolve().parents[2]
         original = tomllib.loads((root / 'Cargo.lock').read_text())['package']
