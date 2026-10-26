@@ -131,7 +131,7 @@ pub fn push_absolute_to_request(context: &str, maybe_absolute_path: &str, out: &
     #[cfg(not(windows))]
     if context.starts_with('/')
       && let Some(relative) = maybe_absolute_resource
-        .strip_prefix(context)
+        .strip_prefix(if context == "/" { "" } else { context })
         .and_then(|suffix| suffix.strip_prefix('/'))
       && maybe_absolute_resource[1..]
         .split('/')
