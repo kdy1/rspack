@@ -1,0 +1,24 @@
+[package]
+edition = "2024"
+name    = "rspack_gungraun"
+publish = false
+version = "0.0.0"
+
+# Keep the measurement harness portable to revisions without this workspace member.
+[workspace]
+
+[dev-dependencies]
+gungraun       = "=0.20.0"
+rspack_sources = { path = "../../crates/rspack_sources" }
+serde_json     = "1.0.151"
+
+[[bench]]
+harness = false
+name    = "sources"
+
+[profile.bench]
+debug = 1
+
+[[bench]]
+harness = false
+name    = "portfolio"
