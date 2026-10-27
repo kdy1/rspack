@@ -4,8 +4,35 @@ const B64_CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0
 // Covers common short mappings while keeping empty/no-map encoders cheap.
 const INITIAL_MAPPINGS_CAPACITY: usize = 512;
 
+// One separator and at most five seven-byte VLQs. Line gaps are written separately.
+struct MappingSegment {
+  bytes: [u8; 36],
+  len: usize,
+}
+
+impl MappingSegment {
+  #[inline(always)]
+  fn new() -> Self {
+    Self {
+      bytes: [0; 36],
+      len: 0,
+    }
+  }
+
+  #[inline(always)]
+  fn push(&mut self, byte: u8) {
+    self.bytes[self.len] = byte;
+    self.len += 1;
+  }
+
+  #[inline(always)]
+  fn append_to(&self, mappings: &mut Vec<u8>) {
+    mappings.extend_from_slice(&self.bytes[..self.len]);
+  }
+}
+
 #[inline(always)]
-pub fn encode_vlq(out: &mut Vec<u8>, a: u32, b: u32) {
+fn encode_vlq(out: &mut MappingSegment, a: u32, b: u32) {
   if a == b {
     out.push(b'A');
     return;
@@ -121,6 +148,7 @@ impl FullMappingsEncoder {
       }
     }
 
+    let mut segment = MappingSegment::new();
     if self.current_line < mapping.generated_line {
       let count = (mapping.generated_line - self.current_line) as usize;
       self.mappings.extend(std::iter::repeat_n(b';', count));
@@ -130,49 +158,45 @@ impl FullMappingsEncoder {
     } else if self.initial {
       self.initial = false;
     } else {
-      self.mappings.push(b',');
+      segment.push(b',');
     }
 
-    encode_vlq(
-      &mut self.mappings,
-      mapping.generated_column,
-      self.current_column,
-    );
+    encode_vlq(&mut segment, mapping.generated_column, self.current_column);
     self.current_column = mapping.generated_column;
     if let Some(original) = &mapping.original {
       self.active_mapping = true;
       if original.source_index == self.current_source_index {
-        self.mappings.push(b'A');
+        segment.push(b'A');
       } else {
         encode_vlq(
-          &mut self.mappings,
+          &mut segment,
           original.source_index,
           self.current_source_index,
         );
         self.current_source_index = original.source_index;
       }
       if original.original_line == self.current_original_line {
-        self.mappings.push(b'A');
+        segment.push(b'A');
       } else {
         encode_vlq(
-          &mut self.mappings,
+          &mut segment,
           original.original_line,
           self.current_original_line,
         );
         self.current_original_line = original.original_line;
       }
       if original.original_column == self.current_original_column {
-        self.mappings.push(b'A');
+        segment.push(b'A');
       } else {
         encode_vlq(
-          &mut self.mappings,
+          &mut segment,
           original.original_column,
           self.current_original_column,
         );
         self.current_original_column = original.original_column;
       }
       if let Some(name_index) = original.name_index {
-        encode_vlq(&mut self.mappings, name_index, self.current_name_index);
+        encode_vlq(&mut segment, name_index, self.current_name_index);
         self.current_name_index = name_index;
         self.active_name = true;
       } else {
@@ -181,6 +205,7 @@ impl FullMappingsEncoder {
     } else {
       self.active_mapping = false;
     }
+    segment.append_to(&mut self.mappings);
   }
 
   #[allow(unsafe_code)]
@@ -232,35 +257,28 @@ impl LinesOnlyMappingsEncoder {
 
       self.current_line = mapping.generated_line;
 
-      if original.source_index == self.current_source_index {
-        if original.original_line == self.current_original_line + 1 {
-          self.current_original_line = original.original_line;
-          self.mappings.extend(b"AACA");
-        } else {
-          self.mappings.extend(b"AA");
-          encode_vlq(
-            &mut self.mappings,
-            original.original_line,
-            self.current_original_line,
-          );
-          self.current_original_line = original.original_line;
-          self.mappings.push(b'A');
-        }
+      if original.source_index == self.current_source_index
+        && original.original_line == self.current_original_line + 1
+      {
+        self.current_original_line = original.original_line;
+        self.mappings.extend(b"AACA");
       } else {
-        self.mappings.extend(b"A");
+        let mut segment = MappingSegment::new();
+        segment.push(b'A');
         encode_vlq(
-          &mut self.mappings,
+          &mut segment,
           original.source_index,
           self.current_source_index,
         );
         self.current_source_index = original.source_index;
         encode_vlq(
-          &mut self.mappings,
+          &mut segment,
           original.original_line,
           self.current_original_line,
         );
         self.current_original_line = original.original_line;
-        self.mappings.push(b'A');
+        segment.push(b'A');
+        segment.append_to(&mut self.mappings);
       }
     }
   }
