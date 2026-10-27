@@ -139,22 +139,13 @@ impl ConcatSource {
       *children = optimized_children;
     }
 
-    // First check if it's already a BoxSource containing a ConcatSource
-    if let Some(box_source) = source.as_any().downcast_ref::<BoxSource>() {
-      if let Some(concat_source) = box_source.as_ref().as_any().downcast_ref::<ConcatSource>() {
-        // Extend with existing children (cheap clone due to Arc)
-        let original_children = concat_source.children.lock().unwrap();
-        let other_children = match concat_source.is_optimized.get() {
-          Some(optimized_children) => optimized_children,
-          None => original_children.as_ref(),
-        };
-        children.extend(other_children.iter().cloned());
-        return;
-      }
-    }
+    // Check boxed and unboxed sources through the same borrowed view.
+    let inner_source: &dyn Source = match source.as_any().downcast_ref::<BoxSource>() {
+      Some(box_source) => box_source.as_ref(),
+      None => &source,
+    };
 
-    // Check if the source itself is a ConcatSource
-    if let Some(concat_source) = source.as_any().downcast_ref::<ConcatSource>() {
+    if let Some(concat_source) = inner_source.as_any().downcast_ref::<ConcatSource>() {
       // Extend with existing children (cheap clone due to Arc)
       let original_children = concat_source.children.lock().unwrap();
       let other_children = match concat_source.is_optimized.get() {
