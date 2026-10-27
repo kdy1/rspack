@@ -1,6 +1,7 @@
 use std::{
   any::{Any, TypeId},
   borrow::Cow,
+  cell::Cell,
   fmt,
   hash::{Hash, Hasher},
   sync::Arc,
@@ -431,6 +432,32 @@ impl<'a> SourceMap<'a> {
   }
 }
 
+thread_local! {
+  static SOURCE_MAP_PARSE_BUFFERS: Cell<Option<simd_json::Buffers>> = const { Cell::new(None) };
+}
+
+fn parse_source_map_json(bytes: &mut [u8]) -> simd_json::Result<BorrowedValue<'_>> {
+  // Bound retained scratch by both input size and structural complexity. Large
+  // inputs use temporary buffers without increasing the per-thread high-water mark.
+  if bytes.len() > 8 * 1024 * 1024 {
+    return simd_json::to_borrowed_value(bytes);
+  }
+
+  // Taking the buffers leaves an empty slot for reentrant calls. During thread
+  // teardown, try_with fails and parsing uses temporary buffers instead.
+  let mut buffers = SOURCE_MAP_PARSE_BUFFERS
+    .try_with(Cell::take)
+    .ok()
+    .flatten()
+    .unwrap_or_else(|| simd_json::Buffers::new(bytes.len()));
+  // The DOM borrows only the input bytes, never the reusable scratch buffers.
+  let value = simd_json::to_borrowed_value_with_buffers(bytes, &mut buffers);
+  if value.is_ok() && buffers.structural_indexes().len() <= 64 * 1024 {
+    let _ = SOURCE_MAP_PARSE_BUFFERS.try_with(|slot| slot.set(Some(buffers)));
+  }
+  value
+}
+
 impl SourceMap<'static> {
   /// Create a [SourceMap].
   pub fn new(
@@ -458,7 +485,7 @@ impl SourceMap<'static> {
   /// Create a [SourceMap] from bytes.
   pub fn from_bytes(mut bytes: Vec<u8>) -> Result<Self> {
     let fields = {
-      let borrowed_value = simd_json::to_borrowed_value(bytes.as_mut_slice())?;
+      let borrowed_value = parse_source_map_json(bytes.as_mut_slice())?;
       let fields = deserialize_source_map_fields(&borrowed_value)?;
       #[allow(unsafe_code)]
       // SAFETY: All borrowed strings in `fields` point into the stable backing
