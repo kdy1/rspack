@@ -692,7 +692,8 @@ impl<'a> SourceMap<'a> {
 
   /// Generate source map to a json string.
   pub fn to_json(&self) -> String {
-    let mut writer = std::io::BufWriter::new(Vec::with_capacity(self.json_size_hint()));
+    let mut writer =
+      std::io::BufWriter::with_capacity(1024, Vec::with_capacity(self.json_size_hint()));
 
     simd_json::to_writer(&mut writer, self).expect("serialize source map JSON");
     let buffer = writer.into_inner().expect("flush source map JSON to Vec");
