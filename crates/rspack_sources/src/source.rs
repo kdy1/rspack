@@ -801,19 +801,20 @@ fn optional_string_array_field<'a>(
   let values = value
     .as_array()
     .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedArray))?;
-  let mut strings = Vec::with_capacity(values.len());
-  for value in values {
-    strings.push(if value.is_null() {
-      Cow::Borrowed("")
-    } else {
-      Cow::Borrowed(
-        value
-          .as_str()
-          .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedString))?,
-      )
-    });
-  }
-  Ok(strings)
+  values
+    .iter()
+    .try_fold(Vec::with_capacity(values.len()), |mut strings, value| {
+      strings.push(if value.is_null() {
+        Cow::Borrowed("")
+      } else {
+        Cow::Borrowed(
+          value
+            .as_str()
+            .ok_or_else(|| simd_json::Error::generic(ErrorType::ExpectedString))?,
+        )
+      });
+      Ok(strings)
+    })
 }
 
 fn optional_u32_array_field<'a>(
