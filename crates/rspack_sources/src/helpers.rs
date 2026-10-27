@@ -965,26 +965,42 @@ pub fn stream_chunks_of_combined_source_map<'chunk, 'source>(
     RefCell::new(LinearMap::default());
   let inner_source_map_line_data: RefCell<Vec<SourceMapLineData>> = RefCell::new(Vec::new());
 
-  let find_inner_mapping = |line: i64, column: i64| -> Option<u32> {
+  let mut previous_mapping: Option<(i64, i64, Option<i64>, u32)> = None;
+  let mut find_inner_mapping = |line: i64, column: i64| -> Option<u32> {
     let inner_source_map_line_data = inner_source_map_line_data.borrow();
     if line as usize > inner_source_map_line_data.len() {
       return None;
     }
     let mappings_data = &inner_source_map_line_data[line as usize - 1].mappings_data;
+    if let Some((previous_line, start, end, index)) = previous_mapping
+      && line == previous_line
+      && column >= start
+      && end.is_none_or(|end| column < end)
+    {
+      return Some(index);
+    }
     let mut l = 0;
     let mut r = mappings_data.len() / 5;
+    let mut start = i64::MIN;
+    let mut end = None;
     while l < r {
       let m = (l + r) >> 1;
-      if mappings_data[m * 5] <= column {
+      let boundary = mappings_data[m * 5];
+      if boundary <= column {
+        start = start.max(boundary);
         l = m + 1;
       } else {
+        end = Some(end.map_or(boundary, |end: i64| end.min(boundary)));
         r = m;
       }
     }
     if l == 0 {
       return None;
     }
-    Some(l as u32 - 1)
+    let index = l as u32 - 1;
+    // Reuse only columns that follow the same search path, including for unordered input.
+    previous_mapping = Some((line, start, end, index));
+    Some(index)
   };
 
   stream_chunks_of_source_map(
