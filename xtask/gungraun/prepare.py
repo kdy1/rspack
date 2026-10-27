@@ -1,8 +1,31 @@
 """Overlay fixed benchmark plumbing without replacing production sources."""
 
 from pathlib import Path
+import hashlib
 import re
 import shutil
+
+SOURCE_FIXTURES = (
+    ('rspack_sources_repetitive_react_components.rs', 'REPETITIVE_1K_REACT_COMPONENTS_SOURCE', 'react'),
+    ('rspack_sources_complex_replace_source.rs', 'LARGE_REPLACE_SOURCE', 'replace'),
+)
+
+
+def prepare_source_fixtures(workflow, source):
+    """Reuse existing graph constructors without their Criterion entry points."""
+    destination = source / 'xtask/gungraun/benches/generated'
+    destination.mkdir(parents=True, exist_ok=True)
+    hashes = {}
+    for filename, symbol, module in SOURCE_FIXTURES:
+        original = workflow / 'xtask/benchmark/benches/groups' / filename
+        text = original.read_text().split('\npub fn benchmark_', 1)[0]
+        if f'static {symbol}:' not in text or 'use criterion::Bencher;' not in text:
+            raise ValueError(f'Source fixture constructor changed: {filename}')
+        text = '#![allow(unused_imports, clippy::unwrap_used)]\n' + text.replace('use criterion::Bencher;\n', '')
+        text += f'\npub fn source() -> BoxSource {{ {symbol}.clone() }}\n'
+        (destination / f'{module}.rs').write_text(text)
+        hashes[f'{module}.rs'] = hashlib.sha256(text.encode()).hexdigest()
+    return hashes
 
 
 def adapt(text):

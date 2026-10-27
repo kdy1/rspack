@@ -7,10 +7,26 @@ import unittest
 from unittest.mock import patch
 
 from gungraun import annotate_profiles, build_executable, build_features, compare, preserve_binary, read_summaries, select_catalog
-from prepare import adapt, prepare, registered_entries
+from prepare import SOURCE_FIXTURES, adapt, prepare, prepare_source_fixtures, registered_entries
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_source_fixtures_reuse_fixed_constructors_without_changing_originals(self):
+        root = Path(__file__).resolve().parents[2]
+        originals = {name: (root / 'xtask/benchmark/benches/groups' / name).read_bytes()
+                     for name, _, _ in SOURCE_FIXTURES}
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory)
+            first = prepare_source_fixtures(root, destination)
+            self.assertEqual(first, prepare_source_fixtures(root, destination))
+            for name, symbol, module in SOURCE_FIXTURES:
+                generated = (destination / 'xtask/gungraun/benches/generated' / f'{module}.rs').read_text()
+                self.assertNotIn('use criterion::Bencher;', generated)
+                self.assertNotIn('pub fn benchmark_', generated)
+                self.assertIn(f'static {symbol}:', generated)
+                self.assertIn(f'{symbol}.clone()', generated)
+                self.assertEqual(originals[name], (root / 'xtask/benchmark/benches/groups' / name).read_bytes())
+
     def test_executable_comes_from_current_cargo_messages(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

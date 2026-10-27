@@ -15,7 +15,7 @@ import tomllib
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'xtask/gungraun'))
-from prepare import prepare
+from prepare import SOURCE_FIXTURES, prepare, prepare_source_fixtures
 
 ROOT = Path(__file__).resolve().parents[2]
 HARNESS = Path('xtask/gungraun')
@@ -159,8 +159,13 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     toolchain = tomllib.loads((ROOT / 'rust-toolchain.toml').read_text())['toolchain']['channel']
     harness_files = [ROOT / HARNESS / 'Cargo.toml', ROOT / HARNESS / 'Cargo.lock',
-                     *sorted((ROOT / HARNESS / 'benches').rglob('*.rs')), ROOT / FIXTURE,
+                     *sorted(p for p in (ROOT / HARNESS / 'benches').rglob('*.rs')
+                             if 'generated' not in p.parts), ROOT / FIXTURE,
                      ROOT / 'rust-toolchain.toml', ROOT / '.cargo/config.toml']
+    if args.suite == 'sources':
+        harness_files += [ROOT / HARNESS / 'prepare.py',
+                          *[ROOT / 'xtask/benchmark/benches/groups' / name
+                            for name, _, _ in SOURCE_FIXTURES]]
     if args.suite != 'sources':
         harness_files += [ROOT / HARNESS / 'prepare.py', ROOT / HARNESS / 'workspace.Cargo.lock',
                           *sorted((ROOT / HARNESS / 'driver').rglob('*.rs')),
@@ -226,6 +231,9 @@ def main():
                     shutil.copyfile(ROOT / FIXTURE, source / FIXTURE)
                     target = 'sources'
                     if args.suite == 'sources':
+                        metadata[f'{label}_generated_fixtures'] = prepare_source_fixtures(ROOT, source)
+                        if label == 'head' and metadata['base_generated_fixtures'] != metadata['head_generated_fixtures']:
+                            raise ValueError('Base/head generated source fixtures differ')
                         executable, features = build_executable(
                             ['cargo', 'bench', '--locked', '--manifest-path', str(HARNESS / 'Cargo.toml'),
                              '--bench', 'sources', '--no-run', '--message-format=json'],
